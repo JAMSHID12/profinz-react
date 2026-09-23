@@ -1,0 +1,150 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Neutral blue until the client's colour arrives from /api/config/public. */
+  :root {
+    --brand-50: 238 243 250;
+    --brand-100: 218 228 241;
+    --brand-200: 178 198 225;
+    --brand-300: 142 167 200;
+    --brand-400: 97 131 176;
+    --brand-500: 52 97 155;
+    --brand-600: 29 79 145;
+    --brand-700: 24 65 119;
+    --brand-800: 19 52 96;
+    --brand-900: 15 40 73;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-slate-100 text-slate-800 antialiased;
+    font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  /* Keeps iOS from zooming when a field is focused. */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  @media (min-width: 640px) {
+    input,
+    select,
+    textarea {
+      font-size: 14px;
+    }
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl border border-slate-200 bg-white shadow-sm;
+  }
+
+  .input {
+    @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 outline-none transition
+      focus:border-brand-500 focus:ring-2 focus:ring-brand-100 disabled:bg-slate-100 disabled:text-slate-500;
+  }
+
+  .label {
+    @apply mb-1 block text-sm font-medium text-slate-600;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition
+      focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .btn-primary {
+    @apply btn bg-brand-600 text-white hover:bg-brand-700 focus:ring-brand-300;
+  }
+
+  .btn-secondary {
+    @apply btn border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 focus:ring-slate-200;
+  }
+
+  .btn-danger {
+    @apply btn bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-300;
+  }
+
+  .btn-ghost {
+    @apply btn px-2 py-1.5 text-slate-600 hover:bg-slate-100 focus:ring-slate-200;
+  }
+
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs;
+  }
+
+  .table-wrap {
+    @apply w-full overflow-x-auto;
+  }
+
+  .table {
+    @apply w-full min-w-full border-collapse text-left text-sm;
+  }
+
+  .table thead th {
+    @apply whitespace-nowrap border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase
+      tracking-wide text-slate-500;
+  }
+
+  .table tbody td {
+    @apply border-b border-slate-100 px-4 py-3 align-middle text-slate-700;
+  }
+
+  .table tbody tr:hover {
+    @apply bg-slate-50;
+  }
+
+  .tab {
+    @apply whitespace-nowrap border-b-2 border-transparent px-3 py-2 text-sm font-medium text-slate-500 transition
+      hover:text-slate-800;
+  }
+
+  .tab-active {
+    @apply border-brand-600 text-brand-700;
+  }
+
+  /* A screen that fills the space under the app header (h-16) edge to edge, so only a list inside
+     it scrolls. The negative margins cancel the padding of <main> in Layout. */
+  .screen-fill {
+    @apply -mx-4 -my-5 sm:-mx-6 sm:-my-6;
+    height: calc(100vh - 4rem);
+    height: calc(100dvh - 4rem);
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Long registers stay fast: rows outside the viewport are not laid out or painted. */
+  .attendance-row {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 3.25rem;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+  }
+
+  .card {
+    box-shadow: none;
+    border-color: #e2e8f0;
+  }
+}
