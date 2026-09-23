@@ -1,19 +1,14 @@
-# Build context is the repository root so the shared nginx config can be copied.
-# ---- Build stage ----------------------------------------------------------
-FROM node:20-alpine AS build
-WORKDIR /build
-
-COPY frontend/package.json frontend/package-lock.json ./
+# Railway service root directory: /frontend
+FROM node:22-alpine AS build
+WORKDIR /app
+COPY package.json package-lock.json ./
 RUN npm ci
+COPY . .
+ARG VITE_API_BASE_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+RUN test -n "$VITE_API_BASE_URL" && npm run build
 
-COPY frontend/ ./
-
-# Nothing client-specific is baked in: name, logo, colours and currency are loaded
-# from GET /api/config/public when the app starts.
-RUN npm run build
-
-# ---- Runtime stage --------------------------------------------------------
-FROM nginx:1.27-alpine
-COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /build/dist /usr/share/nginx/html
+FROM nginx:stable-alpine
+COPY nginx.railway.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 80
