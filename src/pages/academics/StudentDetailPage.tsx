@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { educationLabel } from '../../utils/eligibility';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeftRight, KeyRound, Pencil } from 'lucide-react';
 import {
@@ -102,6 +103,7 @@ function Overview({ student }: { student: StudentDetail }) {
         <InfoGrid
           items={[
             ['Student ID', student.studentCode],
+            ['Education category', educationLabel(student.educationCategory, student.educationCategoryDetail)],
             ['Admission date', formatDate(student.admissionDate)],
             ['Course', student.course?.name],
             ['Academic year', student.academicYear?.name],

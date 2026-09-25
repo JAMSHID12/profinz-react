@@ -69,6 +69,7 @@ const BADGE_TONES: Record<string, string> = {
   ABSENT: 'bg-rose-100 text-rose-700',
   LATE: 'bg-amber-100 text-amber-700',
   EXCUSED: 'bg-sky-100 text-sky-700',
+  HOLIDAY: 'bg-slate-100 text-slate-600',
   PAID: 'bg-emerald-100 text-emerald-700',
   PARTIAL: 'bg-amber-100 text-amber-700',
   PENDING: 'bg-slate-100 text-slate-700',

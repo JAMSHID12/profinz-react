@@ -134,14 +134,14 @@ function AttendanceCalendar({ detail }: { detail: StudentAttendanceDetail }) {
 }
 
 function Exceptions({ detail }: { detail: StudentAttendanceDetail }) {
-  const exceptions = detail.records.filter((record) => record.status !== 'PRESENT');
+  const exceptions = detail.records.filter((record) => record.status !== 'PRESENT' && record.status !== 'HOLIDAY');
   return (
     <div>
       <p className="mb-2 text-sm font-semibold text-slate-800">
         Absences and late arrivals <span className="font-normal text-slate-500">&middot; {exceptions.length}</span>
       </p>
       {exceptions.length === 0 ? (
-        <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">Present at every class in this period.</p>
+        <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">No absences or late arrivals in this period.</p>
       ) : (
         <ul className="max-h-64 divide-y divide-slate-100 overflow-y-auto rounded-lg border border-slate-200">
           {exceptions.map((record) => (

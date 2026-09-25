@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, Pencil, Plus, ShieldCheck } from 'lucide-react';
-import { scheduleApi } from '../../api/endpoints';
+import { eligibilityLabel } from '../../utils/eligibility';
+import { scheduleApi, syllabusApi } from '../../api/endpoints';
 import { useAction, useForm, useQuery } from '../../hooks/useQuery';
 import { useBatches, useFacultyList, useSubjects } from '../../hooks/lookups';
 import { useAuth } from '../../context/AuthContext';
@@ -58,6 +59,7 @@ export default function SchedulePage() {
             { header: 'Time', render: (row) => `${row.startTime} - ${row.endTime}` },
             { header: 'Batch', render: (row) => row.batch.name },
             { header: 'Subject', render: (row) => <span className="font-medium text-slate-800">{row.subject.name}</span> },
+            { header: 'Topic / eligibility', render: (row) => `${row.topic?.name ?? 'No topic'} · ${eligibilityLabel(row.eligibility, row.educationCategory)}` },
             { header: 'Faculty', render: (row) => row.faculty?.name ?? <span className="text-slate-400">Not assigned</span> },
             { header: 'Room', render: (row) => row.room ?? '-' },
             { header: 'Status', render: (row) => <Badge value={row.status} /> },
@@ -77,10 +79,11 @@ function ScheduleDialog({ entry, onClose, onSaved }: { entry: ScheduleEntry | 'n
   const batches = useBatches();
   const faculty = useFacultyList();
   const { values, set, setValues } = useForm({
-    batchId: '', subjectId: '', facultyId: '', scheduleDate: todayIso(), startTime: '', endTime: '', room: '', notes: '', repeatWeeklyUntil: '', status: 'SCHEDULED',
+    batchId: '', subjectId: '', topicId: '', facultyId: '', scheduleDate: todayIso(), startTime: '', endTime: '', room: '', notes: '', repeatWeeklyUntil: '', status: 'SCHEDULED',
   });
   const courseId = batches.find((batch) => batch.id === Number(values.batchId))?.course.id;
   const subjects = useSubjects(courseId);
+  const topics = useQuery(() => syllabusApi.topics({ subjectId: values.subjectId }), [values.subjectId], Boolean(values.subjectId));
   const [conflicts, setConflicts] = useState<ScheduleConflict[] | null>(null);
   const { run, busy, errors, setErrors } = useAction();
 
@@ -90,6 +93,7 @@ function ScheduleDialog({ entry, onClose, onSaved }: { entry: ScheduleEntry | 'n
     setValues({
       batchId: existing ? String(existing.batch.id) : '',
       subjectId: existing ? String(existing.subject.id) : '',
+      topicId: existing?.topic ? String(existing.topic.id) : '',
       facultyId: existing?.faculty ? String(existing.faculty.id) : '',
       scheduleDate: existing?.scheduleDate ?? todayIso(),
       startTime: existing?.startTime ?? '',
@@ -104,6 +108,7 @@ function ScheduleDialog({ entry, onClose, onSaved }: { entry: ScheduleEntry | 'n
   const body = () => ({
     batchId: numberOrUndefined(values.batchId),
     subjectId: numberOrUndefined(values.subjectId),
+    topicId: numberOrUndefined(values.topicId) ?? null,
     facultyId: numberOrUndefined(values.facultyId),
     scheduleDate: values.scheduleDate,
     startTime: values.startTime,
@@ -136,10 +141,14 @@ function ScheduleDialog({ entry, onClose, onSaved }: { entry: ScheduleEntry | 'n
       </>}>
       <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
         <Field label="Batch" error={errors.batchId}>
-          <SelectInput value={values.batchId} onChange={(v) => { set('batchId', v); set('subjectId', ''); }} options={refOptions(batches)} placeholder="Select" />
+          <SelectInput value={values.batchId} onChange={(v) => { set('batchId', v); set('subjectId', ''); set('topicId', ''); }} options={refOptions(batches)} placeholder="Select" />
         </Field>
         <Field label="Subject" error={errors.subjectId}>
-          <SelectInput value={values.subjectId} onChange={(v) => set('subjectId', v)} options={refOptions(subjects)} placeholder={courseId ? 'Select' : 'Choose a batch first'} />
+          <SelectInput value={values.subjectId} onChange={(v) => { set('subjectId', v); set('topicId', ''); }} options={refOptions(subjects)} placeholder={courseId ? 'Select' : 'Choose a batch first'} />
+        </Field>
+        <Field label="Syllabus topic" hint="No topic means both categories attend." error={errors.topicId ?? topics.error ?? undefined}>
+          <SelectInput value={values.topicId} onChange={v => set('topicId', v)} disabled={!values.subjectId || topics.loading} placeholder="Both categories (no topic)"
+            options={(topics.data ?? []).filter(t => t.active || t.id === existing?.topic?.id).map(t => ({ value: t.id, label: t.title + ' · ' + eligibilityLabel(t.eligibility, t.educationCategory) }))} />
         </Field>
         <Field label="Faculty"><SelectInput value={values.facultyId} onChange={(v) => set('facultyId', v)} options={refOptions(faculty)} placeholder="Not assigned" /></Field>
         <Field label="Date" error={errors.scheduleDate}><input type="date" className="input" value={values.scheduleDate} onChange={(e) => set('scheduleDate', e.target.value)} /></Field>

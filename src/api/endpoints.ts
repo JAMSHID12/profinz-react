@@ -1,5 +1,6 @@
 import { http, get, post, put } from './client';
 import type {
+  EducationCategoryMaster,
   AcademicReport,
   AcademicTest,
   AcademicYear,
@@ -92,6 +93,11 @@ export const dashboardApi = {
   admin: (filters?: Filters) => get<AdminAttendanceDashboard>('/dashboard/admin', filters),
   studentAttendance: (studentId: number, filters?: Filters) =>
     get<StudentAttendanceDetail>(`/dashboard/attendance/students/${studentId}`, filters),
+};
+
+export const educationCategoryApi = {
+  list: () => get<EducationCategoryMaster[]>('/education-categories'),
+  save: (id: number | undefined, body: Body) => id ? put<EducationCategoryMaster>(`/education-categories/${id}`, body) : post<EducationCategoryMaster>('/education-categories', body),
 };
 
 export const academicApi = {

@@ -219,7 +219,13 @@ export interface ParentSummary {
   whatsappOptIn: boolean;
 }
 
+export type EducationCategory = 'PLUS_TWO' | 'DEGREE';
+export interface EducationCategoryMaster { id: number; code: string; name: string; displayOrder: number; active: boolean }
+export type TopicEligibility = 'PLUS_TWO_ONLY' | 'DEGREE_ONLY' | 'BOTH' | 'CATEGORY_ONLY';
+
 export interface StudentRow {
+  educationCategory?: EducationCategory;
+  educationCategoryDetail?: EducationCategoryMaster;
   id: number;
   studentCode?: string;
   admissionNumber: string;
@@ -260,6 +266,9 @@ export interface BatchHistoryEntry {
 export type ScheduleStatus = 'SCHEDULED' | 'COMPLETED' | 'CANCELLED';
 
 export interface ScheduleEntry {
+  topic?: Ref;
+  eligibility: TopicEligibility;
+  educationCategory?: EducationCategoryMaster;
   id: number;
   batch: Ref;
   course: Ref;
@@ -303,8 +312,8 @@ export interface EntryExit {
 
 // ---- Attendance ------------------------------------------------------------------------------
 
-export type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'LATE' | 'EXCUSED';
-export type AbsenceReason = 'MEDICAL' | 'PERSONAL' | 'OTHER';
+export type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'LATE' | 'EXCUSED' | 'HOLIDAY';
+export type AbsenceReason = 'INFORMED' | 'NOT_INFORMED';
 
 export interface AttendanceSummary {
   totalClasses: number;
@@ -355,6 +364,7 @@ export interface SheetRow {
 }
 
 export interface AttendanceSheet {
+  holidays: Ref[];
   batch: Ref;
   date: string;
   schedule?: ScheduleEntry;
@@ -549,6 +559,8 @@ export interface ProgressCard {
 export type SyllabusStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'DELAYED';
 
 export interface SyllabusTopic {
+  eligibility: TopicEligibility;
+  educationCategory?: EducationCategoryMaster;
   id: number;
   course: Ref;
   subject: Ref;

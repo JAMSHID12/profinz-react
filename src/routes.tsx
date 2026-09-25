@@ -1,3 +1,4 @@
+import ExcelImportPage from './pages/imports/ExcelImportPage';
 import {
   BarChart3,
   BookMarked,
@@ -101,6 +102,7 @@ const OFFICE = ['STAFF'] as const;
 const ACADEMICS = 'academics' as const;
 
 export const ROUTES: AppRoute[] = [
+
   // ---- Home ---------------------------------------------------------------------------
   { path: '/', element: <Home />, permissions: ['DASHBOARD_VIEW', 'MY_PROFILE_VIEW'],
     nav: { section: 'Overview', label: 'Dashboard', icon: LayoutDashboard } },
@@ -188,6 +190,11 @@ export const ROUTES: AppRoute[] = [
   { path: '/master-data', element: <MasterDataPage />, portals: [...STAFF], module: ACADEMICS, permissions: ['MASTER_DATA_MANAGE'],
     nav: { section: 'Setup', label: 'Master data', icon: Database } },
 
+  { path: '/imports/students', element: <ExcelImportPage key='students' kind='students' />, roles: ['ADMINISTRATIVE'], module: 'administration', permissions: ['STUDENT_CREATE'], nav: { section: 'Bulk upload', label: 'Students', icon: Database } },
+  { path: '/imports/faculty', element: <ExcelImportPage key='faculty' kind='faculty' />, roles: ['ADMINISTRATIVE'], module: 'administration', permissions: ['FACULTY_MANAGE'], nav: { section: 'Bulk upload', label: 'Faculty', icon: Database } },
+  { path: '/imports/mentors', element: <ExcelImportPage key='mentors' kind='mentors' />, roles: ['ADMINISTRATIVE'], module: 'administration', permissions: ['MENTOR_MANAGE'], nav: { section: 'Bulk upload', label: 'Mentors', icon: Database } },
+  { path: '/imports/fees', element: <ExcelImportPage key='fees' kind='fees' />, roles: ['ADMINISTRATIVE'], module: 'administration', permissions: ['COURSE_MANAGE'], nav: { section: 'Bulk upload', label: 'Fee structure', icon: Database } },
+
   // ---- Administration ---------------------------------------------------------------------------------------------
   { path: '/users', element: <UsersPage />, portals: [...STAFF], module: 'administration', permissions: ['USER_VIEW'],
     nav: { section: 'Administration', label: 'Users', icon: Users } },
@@ -211,4 +218,5 @@ export const NAV_SECTION_ICONS: Record<string, LucideIcon> = {
   Communication: MessageSquare,
   Setup: Layers,
   Administration: ShieldCheck,
+  'Bulk upload': Database,
 };

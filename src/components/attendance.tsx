@@ -6,17 +6,18 @@ import type { AbsenceReason, AttendanceMark, AttendanceStatus } from '../types';
 import { titleCase } from '../utils/format';
 
 /** Every status the server knows, for filters and saved marks. Teachers choose from MARKING_STATUSES. */
-export const ATTENDANCE_STATUSES: AttendanceStatus[] = ['PRESENT', 'ABSENT', 'LATE', 'EXCUSED'];
+export const ATTENDANCE_STATUSES: AttendanceStatus[] = ['PRESENT', 'ABSENT', 'LATE', 'EXCUSED', 'HOLIDAY'];
 
 export const STATUS_STYLE: Record<AttendanceStatus, { label: string; selected: string; accent: string; chip: string }> = {
   PRESENT: { label: 'Present', selected: 'border-emerald-600 bg-emerald-600 text-white', accent: 'bg-emerald-500', chip: 'bg-emerald-50 text-emerald-700' },
   ABSENT: { label: 'Absent', selected: 'border-rose-600 bg-rose-600 text-white', accent: 'bg-rose-500', chip: 'bg-rose-50 text-rose-700' },
   LATE: { label: 'Late', selected: 'border-amber-500 bg-amber-500 text-white', accent: 'bg-amber-400', chip: 'bg-amber-50 text-amber-800' },
+  HOLIDAY: { label: 'Holiday', selected: 'border-slate-500 bg-slate-500 text-white', accent: 'bg-slate-400', chip: 'bg-slate-100 text-slate-600' },
   EXCUSED: { label: 'Excused', selected: 'border-sky-600 bg-sky-600 text-white', accent: 'bg-sky-500', chip: 'bg-sky-50 text-sky-700' },
 };
 
 export const LATE_MINUTES = [10, 15, 30, 60, 120];
-export const ABSENCE_REASONS: AbsenceReason[] = ['MEDICAL', 'PERSONAL', 'OTHER'];
+export const ABSENCE_REASONS: AbsenceReason[] = ['INFORMED', 'NOT_INFORMED'];
 export const MAX_LATE_MINUTES = 600;
 
 export function isAway(status: AttendanceStatus): boolean {
@@ -33,7 +34,7 @@ export function withStatus(mark: AttendanceMark, status: AttendanceStatus): Atte
     ...mark,
     status,
     lateMinutes: status === 'LATE' ? mark.lateMinutes : undefined,
-    absenceReason: away ? mark.absenceReason : undefined,
+    absenceReason: away ? (mark.absenceReason ?? 'NOT_INFORMED') : undefined,
     noUniform: !away && mark.noUniform,
     noIdTag: !away && mark.noIdTag,
   };
@@ -260,11 +261,11 @@ export function MarkEditor({
       )}
 
       {away ? (
-        <Section title="Reason" hint="optional">
+        <Section title="Absence notification">
           <div className="flex flex-wrap gap-2">
             {ABSENCE_REASONS.map((reason) => (
-              <Choice key={reason} disabled={disabled} selected={value.absenceReason === reason}
-                onClick={() => onChange({ ...value, absenceReason: value.absenceReason === reason ? undefined : reason })}>
+              <Choice key={reason} disabled={disabled} selected={(value.absenceReason ?? 'NOT_INFORMED') === reason}
+                onClick={() => onChange({ ...value, absenceReason: reason })}>
                 {titleCase(reason)}
               </Choice>
             ))}

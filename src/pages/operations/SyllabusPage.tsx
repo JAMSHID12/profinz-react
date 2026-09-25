@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
+import { eligibilityLabel } from '../../utils/eligibility';
 import { Pencil, Plus } from 'lucide-react';
-import { syllabusApi } from '../../api/endpoints';
+import { syllabusApi, educationCategoryApi } from '../../api/endpoints';
 import { useAction, useForm, useQuery } from '../../hooks/useQuery';
 import { useBatches, useCourses, useSubjects } from '../../hooks/lookups';
 import { useAuth } from '../../context/AuthContext';
@@ -93,6 +94,7 @@ function ProgressTab() {
 }
 
 function TopicsTab() {
+  const categories = useQuery(() => educationCategoryApi.list(), []);
   const courses = useCourses();
   const [courseId, setCourseId] = useState('');
   const subjects = useSubjects(courseId ? Number(courseId) : undefined);
@@ -100,7 +102,7 @@ function TopicsTab() {
   const query = useQuery(() => syllabusApi.topics({ courseId, subjectId }), [courseId, subjectId]);
   const [editing, setEditing] = useState<SyllabusTopic | 'new' | null>(null);
   const existing = editing && editing !== 'new' ? editing : null;
-  const { values, set, setValues } = useForm({ subjectId: '', title: '', description: '', sequenceNo: '', plannedHours: '', active: true });
+  const { values, set, setValues } = useForm({ subjectId: '', title: '', description: '', sequenceNo: '', plannedHours: '', active: true, eligibility: 'BOTH' });
   const { run, busy, errors, setErrors } = useAction();
 
   useEffect(() => {
@@ -112,6 +114,7 @@ function TopicsTab() {
       sequenceNo: existing ? String(existing.sequenceNo) : '',
       plannedHours: existing?.plannedHours ? String(existing.plannedHours) : '',
       active: existing?.active ?? true,
+      eligibility: existing?.educationCategory ? String(existing.educationCategory.id) : 'BOTH',
     });
   }, [editing]);
 
@@ -123,6 +126,8 @@ function TopicsTab() {
       sequenceNo: numberOrUndefined(values.sequenceNo),
       plannedHours: numberOrUndefined(values.plannedHours),
       active: values.active,
+      eligibility: values.eligibility === 'BOTH' ? 'BOTH' : 'CATEGORY_ONLY',
+      educationCategoryId: values.eligibility === 'BOTH' ? null : Number(values.eligibility),
     }), existing ? 'Topic updated' : 'Topic added');
     if (saved) {
       setEditing(null);
@@ -144,6 +149,7 @@ function TopicsTab() {
           { header: 'Topic', render: (row) => <span className="font-medium text-slate-800">{row.title}</span> },
           { header: 'Subject', render: (row) => row.subject.name },
           { header: 'Course', render: (row) => row.course.name },
+          { header: 'Attendance eligibility', render: (row) => eligibilityLabel(row.eligibility, row.educationCategory) },
           { header: 'Hours', render: (row) => row.plannedHours ?? '-' },
           { header: 'Status', render: (row) => <Badge value={row.active ? 'ACTIVE' : 'INACTIVE'} /> },
           { header: '', render: (row) => <button type="button" className="btn-ghost" onClick={() => setEditing(row)} aria-label="Edit"><Pencil size={14} /></button> },
@@ -156,6 +162,9 @@ function TopicsTab() {
             options={subjects.map((subject) => ({ value: subject.id, label: `${subject.name} (${subject.course.name})` }))} />
         </Field>
         <Field label="Title" error={errors.title}><TextInput value={values.title} onChange={(v) => set('title', v)} /></Field>
+        <Field label="Attendance eligibility" hint="Configure categories in Setup → Master data. Students outside the selected category receive Holiday." error={categories.error ?? errors.educationCategoryId ?? undefined}>
+          <SelectInput value={values.eligibility} onChange={v => set('eligibility', v)} disabled={categories.loading || Boolean(categories.error)} options={[{ value: 'BOTH', label: 'All Categories (Both)' }, ...(categories.data ?? []).filter(c => c.active || c.id === existing?.educationCategory?.id).map(c => ({ value: String(c.id), label: c.name + ' Only' + (c.active ? '' : ' (inactive)') }))]} />
+        </Field>
         <Field label="Description"><TextArea value={values.description} onChange={(v) => set('description', v)} rows={2} /></Field>
         <div className="grid grid-cols-2 gap-x-4">
           <Field label="Sequence" error={errors.sequenceNo}><TextInput value={values.sequenceNo} onChange={(v) => set('sequenceNo', v)} inputMode="numeric" /></Field>

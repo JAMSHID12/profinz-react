@@ -3,4 +3,10 @@ dist
 .git
 .env
 .env.*
+*.env
 *.log
+
+**/.env
+**/.env.*
+**/*.env
+**/*.env.*

@@ -14,6 +14,7 @@ export const STATUS_COLORS: Record<AttendanceStatus, string> = {
   PRESENT: '#059669',
   LATE: '#f59e0b',
   EXCUSED: '#0284c7',
+  HOLIDAY: '#94a3b8',
   ABSENT: '#e11d48',
 };
 
@@ -24,6 +25,7 @@ export const STATUS_LABELS: Record<AttendanceStatus, string> = {
   PRESENT: 'Present',
   LATE: 'Late',
   EXCUSED: 'Excused',
+  HOLIDAY: 'Holiday',
   ABSENT: 'Absent',
 };
 
@@ -35,6 +37,7 @@ export function countOf(summary: AttendanceSummary, status: AttendanceStatus): n
     case 'PRESENT': return summary.present;
     case 'LATE': return summary.late;
     case 'EXCUSED': return summary.excused;
+    case 'HOLIDAY': return 0;
     default: return summary.absent;
   }
 }

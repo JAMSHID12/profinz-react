@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react';
 import { Pencil, Plus } from 'lucide-react';
-import { assessmentApi, disciplineApi } from '../../api/endpoints';
+import { assessmentApi, disciplineApi, educationCategoryApi } from '../../api/endpoints';
 import { useAction, useForm, useQuery } from '../../hooks/useQuery';
 import { DataTable } from '../../components/DataTable';
 import { Checkbox, Field, numberOrUndefined, TextInput } from '../../components/forms';
 import { Badge, Card, CardHeader, Modal, PageHeader } from '../../components/ui';
 import { formatMoney } from '../../utils/format';
 
-type Kind = 'discipline' | 'exam';
+type Kind = 'discipline' | 'exam' | 'education';
 interface Editable { id?: number; code: string; name: string; displayOrder: number; active: boolean; defaultFineAmount?: number }
 
 /** Per-client lists that would otherwise be hard-coded: discipline and exam types. */
 export default function MasterDataPage() {
+  const educationCategories = useQuery(() => educationCategoryApi.list(), []);
   const disciplineTypes = useQuery(() => disciplineApi.types(), []);
   const examTypes = useQuery(() => assessmentApi.examTypes(), []);
   const [editing, setEditing] = useState<{ kind: Kind; item: Editable | null } | null>(null);
@@ -42,12 +43,12 @@ export default function MasterDataPage() {
     };
     const id = editing.item?.id;
     const saved = await run(
-      () => (editing.kind === 'discipline' ? disciplineApi.saveType(id, body) : assessmentApi.saveExamType(id, body)),
+      () => (editing.kind === 'education' ? educationCategoryApi.save(id, body) : editing.kind === 'discipline' ? disciplineApi.saveType(id, body) : assessmentApi.saveExamType(id, body)),
       'Saved',
     );
     if (saved) {
       setEditing(null);
-      (editing.kind === 'discipline' ? disciplineTypes : examTypes).reload();
+      (editing.kind === 'education' ? educationCategories : editing.kind === 'discipline' ? disciplineTypes : examTypes).reload();
     }
   };
 
@@ -55,6 +56,18 @@ export default function MasterDataPage() {
     <div className="space-y-5">
       <PageHeader title="Master data" subtitle="Lists this centre can adapt without code changes" />
       <div className="grid gap-5 lg:grid-cols-2">
+        <Card>
+          <CardHeader title="Education category" actions={<button type="button" className="btn-secondary btn-sm" onClick={() => setEditing({ kind: 'education', item: null })}><Plus size={14} /> Add</button>} />
+          <p className="px-4 pb-3 text-sm text-slate-500">Used by student profiles and topic-based attendance. Inactive categories remain on existing records.</p>
+          <DataTable rows={educationCategories.data} loading={educationCategories.loading} error={educationCategories.error} onRetry={educationCategories.reload} rowKey={row => row.id}
+            columns={[
+              { header: 'Code', render: row => <span className="font-mono text-xs">{row.code}</span> },
+              { header: 'Name', render: row => row.name },
+              { header: 'Order', render: row => row.displayOrder },
+              { header: 'Status', render: row => <Badge value={row.active ? 'ACTIVE' : 'INACTIVE'} /> },
+              { header: '', render: row => <button type="button" className="btn-ghost" aria-label="Edit education category" onClick={() => setEditing({ kind: 'education', item: row })}><Pencil size={14} /></button> },
+            ]} />
+        </Card>
         <Card>
           <CardHeader title="Discipline types" actions={
             <button type="button" className="btn-secondary btn-sm" onClick={() => setEditing({ kind: 'discipline', item: null })}><Plus size={14} /> Add</button>} />
@@ -82,12 +95,12 @@ export default function MasterDataPage() {
             ]} />
         </Card>
       </div>
-      <Modal open={editing !== null} title={`${editing?.item ? 'Edit' : 'Add'} ${editing?.kind === 'exam' ? 'exam type' : 'discipline type'}`}
+      <Modal open={editing !== null} title={`${editing?.item ? 'Edit' : 'Add'} ${editing?.kind === 'education' ? 'education category' : editing?.kind === 'exam' ? 'exam type' : 'discipline type'}`}
         onClose={() => setEditing(null)}
         footer={<><button type="button" className="btn-secondary" onClick={() => setEditing(null)}>Cancel</button>
           <button type="button" className="btn-primary" onClick={save} disabled={busy}>Save</button></>}>
         <div className="grid grid-cols-2 gap-x-4">
-          <Field label="Code" error={errors.code}><TextInput value={values.code} onChange={(v) => set('code', v)} /></Field>
+          <Field label="Code" error={errors.code}><TextInput value={values.code} onChange={(v) => set('code', v)} disabled={editing?.kind === 'education' && Boolean(editing.item)} /></Field>
           <Field label="Display order"><TextInput value={values.displayOrder} onChange={(v) => set('displayOrder', v)} inputMode="numeric" /></Field>
         </div>
         <Field label="Name" error={errors.name}><TextInput value={values.name} onChange={(v) => set('name', v)} /></Field>

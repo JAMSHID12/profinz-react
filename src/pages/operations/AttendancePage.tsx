@@ -61,7 +61,7 @@ const SORTS: { value: Sort; label: string }[] = [
   { value: 'absent', label: 'Absent first' },
 ];
 
-const SORT_RANK: Record<AttendanceStatus, number> = { ABSENT: 0, LATE: 1, EXCUSED: 2, PRESENT: 3 };
+const SORT_RANK: Record<AttendanceStatus, number> = { ABSENT: 0, LATE: 1, EXCUSED: 2, PRESENT: 3, HOLIDAY: 4 };
 
 /** Desktop columns: student, details, status, more. Shared by the column header and every row so they line up. */
 const DESKTOP_COLUMNS = 'lg:grid-cols-[minmax(12rem,18rem)_minmax(8rem,1fr)_10rem_2.25rem]';
@@ -269,11 +269,11 @@ export default function AttendancePage() {
   } else {
     body = (
       <SheetEditor
-        key={`${date}:${selected.batch.id}:${selected.scheduleId ?? 'day'}`}
+        key={`${date}:${selected.batch.id}:${selected.scheduleId ?? 'day'}:${sheet.rows.map(row => row.studentId).join(',')}`}
         sheet={sheet}
         userId={user?.id ?? 0}
         taker={taker}
-        onSaved={classes.reload}
+        onSaved={() => { classes.reload(); sheetQuery.reload(); }}
       />
     );
   }
@@ -323,6 +323,8 @@ export default function AttendancePage() {
           </p>
         )}
       </div>
+      {sheet?.schedule?.topic && <p className="px-4 py-2 text-sm text-slate-600">Topic: {sheet.schedule.topic.name}</p>}
+      {sheet && sheet.holidays.length > 0 && <details className="px-4 py-2 text-sm text-slate-600"><summary>{sheet.holidays.length} students exempt — Holiday {sheet.alreadyMarked ? 'recorded' : 'will be recorded on Save'}</summary><p>{sheet.holidays.map(s => s.name).join(', ')}</p></details>}
       {body}
     </div>
   );
@@ -472,7 +474,7 @@ function SheetEditor({ sheet, userId, taker, onSaved }: { sheet: AttendanceSheet
 
   // ---- Saving ----
   const save = async () => {
-    if (savingRef.current || !sheet.canMark || rows.length === 0) return;
+    if (savingRef.current || !sheet.canMark || rows.length === 0 && sheet.holidays.length === 0) return;
     savingRef.current = true;
     setSaving(true);
     setSaveError(null);
@@ -546,7 +548,7 @@ function SheetEditor({ sheet, userId, taker, onSaved }: { sheet: AttendanceSheet
     status = <span className="text-slate-500">Not taken yet - everyone starts as present</span>;
   }
 
-  const canSave = sheet.canMark && rows.length > 0 && !saving && (hasChanges || !onServer);
+  const canSave = sheet.canMark && (rows.length > 0 || sheet.holidays.length > 0) && !saving && (hasChanges || !onServer);
   const upToDate = onServer && !hasChanges;
   const rowsById = useMemo(() => new Map(rows.map((row) => [row.studentId, row])), [rows]);
   const dialogRow = dialog === null ? undefined : rowsById.get(dialog);
@@ -609,7 +611,7 @@ function SheetEditor({ sheet, userId, taker, onSaved }: { sheet: AttendanceSheet
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain" aria-busy={saving}>
         {rows.length === 0 ? (
-          <EmptyState title={`No active students in ${sheet.batch.name}`} />
+          <EmptyState title={sheet.holidays.length > 0 ? 'Everyone is exempt from this topic' : `No active students in ${sheet.batch.name}`} />
         ) : visible.length === 0 ? (
           <div className="flex flex-col items-center gap-2 py-12">
             <p className="text-sm text-slate-600">No students match</p>

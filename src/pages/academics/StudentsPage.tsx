@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { educationLabel } from '../../utils/eligibility';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { studentApi } from '../../api/endpoints';
@@ -48,6 +49,7 @@ export default function StudentsPage() {
           columns={[
             { header: 'Admission no.', render: (row) => <span className="font-mono text-xs">{row.admissionNumber}</span> },
             { header: 'Name', render: (row) => <span className="font-medium text-slate-800">{row.fullName}</span> },
+            { header: 'Education category', render: (row) => educationLabel(row.educationCategory, row.educationCategoryDetail) },
             { header: 'Batch', render: (row) => row.batch?.name ?? '-' },
             { header: 'Parent', render: (row) => (row.parent ? `${row.parent.name} (${row.parent.phoneNumber})` : '-') },
             { header: 'Portal login', render: (row) => row.username ?? <span className="text-slate-400">none</span> },

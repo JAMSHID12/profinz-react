@@ -433,7 +433,7 @@ function KpiRow({ data }: { data: AdminAttendanceDashboard }) {
       <Kpi label="Absent today" value={formatCount(today.absent)}
         badge={today.marked === 0 ? undefined
           : { tone: absentShare >= 10 ? 'bad' : absentShare >= 5 ? 'warn' : 'neutral', text: percentOf(today.absent, today.marked) }}
-        hint={`${formatCount(today.absentWithoutReason)} without an informed reason`}
+        hint={`${formatCount(today.absentWithoutReason)} not informed`}
         icon={<UserX size={14} />} />
       <Kpi label="Late arrivals" value={formatCount(today.late)}
         badge={today.late > 0 ? { tone: 'warn', text: 'Needs review' } : undefined}
@@ -605,7 +605,7 @@ function ReasonsCard({ data }: { data: AdminAttendanceDashboard }) {
   const total = data.absenceReasons.reduce((sum, reason) => sum + reason.count, 0);
   return (
     <Card>
-      <CardHeader title="Absence reasons" subtitle={`${formatCount(total)} ${total === 1 ? 'absence' : 'absences'} in this period`} />
+      <CardHeader title="Absence notification status" subtitle={`${formatCount(total)} ${total === 1 ? 'absence' : 'absences'} in this period`} />
       <div className="p-3">
         {total === 0 ? (
           <EmptyState title="No absences in this period" />
@@ -650,9 +650,8 @@ function AttendanceTab({ data, onStudent }: { data: AdminAttendanceDashboard; on
   const { totals } = data;
   return (
     <div className="space-y-5">
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 [&>*]:min-w-0">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 [&>*]:min-w-0">
         <MiniStat label="Attendance" value={totals.totalClasses === 0 ? '–' : `${totals.attendancePercentage}%`} hint="Present or late" />
-        <MiniStat label="Marks taken" value={formatCount(totals.totalClasses)} hint={`${formatCount(data.activeStudents)} active students`} />
         <MiniStat label="Late marks" value={formatCount(totals.late)} hint={`${percentOf(totals.late, totals.present + totals.late)} of present marks`}
           color={STATUS_COLORS.LATE} />
         <MiniStat label="Absences" value={formatCount(totals.absent + totals.excused)} hint={`${percentOf(totals.absent + totals.excused, totals.totalClasses)} of marks`}

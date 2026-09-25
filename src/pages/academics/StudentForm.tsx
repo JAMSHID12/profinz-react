@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { studentApi } from '../../api/endpoints';
-import { useAction, useForm } from '../../hooks/useQuery';
+import { studentApi, educationCategoryApi } from '../../api/endpoints';
+import { useAction, useForm, useQuery } from '../../hooks/useQuery';
 import { useBatches } from '../../hooks/lookups';
 import { usePhotoUrl } from '../../hooks/usePhotoUrl';
 import { Modal } from '../../components/ui';
@@ -9,7 +9,7 @@ import type { StudentDetail } from '../../types';
 
 const STATUSES = ['ACTIVE', 'INACTIVE', 'COMPLETED', 'DROPPED', 'SUSPENDED'] as const;
 const EMPTY = {
-  fullName: '', dateOfBirth: '', gender: '', mobile: '', email: '', address: '',
+  educationCategory: '', fullName: '', dateOfBirth: '', gender: '', mobile: '', email: '', address: '',
   parentName: '', parentPhoneNumber: '', parentWhatsappOptIn: false,
   batchId: '', admissionDate: '', status: 'ACTIVE', createLogin: true,
 };
@@ -19,6 +19,7 @@ export default function StudentForm({ open, student, onClose, onSaved }: {
   onSaved: (student: StudentDetail) => void;
 }) {
   const batches = useBatches();
+  const categories = useQuery(() => educationCategoryApi.list(), [], open);
   const { values, set, setValues } = useForm(EMPTY);
   const { run, busy, errors, setErrors } = useAction();
   const [photo, setPhoto] = useState<File | null>(null);
@@ -30,7 +31,7 @@ export default function StudentForm({ open, student, onClose, onSaved }: {
     setErrors({});
     setPhoto(null);
     setValues(student ? {
-      fullName: student.fullName, dateOfBirth: student.dateOfBirth ?? '', gender: student.gender ?? '',
+      educationCategory: student.educationCategoryDetail ? String(student.educationCategoryDetail.id) : '', fullName: student.fullName, dateOfBirth: student.dateOfBirth ?? '', gender: student.gender ?? '',
       mobile: student.mobile ?? '', email: student.email ?? '', address: student.address ?? '',
       parentName: student.parent?.name ?? '', parentPhoneNumber: student.parent?.phoneNumber ?? '',
       parentWhatsappOptIn: student.parent?.whatsappOptIn ?? false,
@@ -54,6 +55,7 @@ export default function StudentForm({ open, student, onClose, onSaved }: {
     if (!/^\+?[0-9]{7,15}$/.test(values.parentPhoneNumber.trim())) invalid.parentPhoneNumber = 'Include country code and 7–15 digits';
     if (Object.keys(invalid).length) { setErrors(invalid); return; }
     const body = {
+      educationCategoryId: numberOrUndefined(values.educationCategory),
       fullName: values.fullName.trim(), dateOfBirth: blankToUndefined(values.dateOfBirth),
       gender: blankToUndefined(values.gender), mobile: blankToUndefined(values.mobile),
       email: blankToUndefined(values.email), address: blankToUndefined(values.address),
@@ -81,6 +83,10 @@ export default function StudentForm({ open, student, onClose, onSaved }: {
         <Field label="Batch / class" hint={student ? 'Use Move to batch to change placement' : 'Course is determined by the selected batch'} error={errors.batchId}>
           <SelectInput value={values.batchId} onChange={v => set('batchId', v)} disabled={Boolean(student)} placeholder="Select batch"
             options={batches.map(batch => ({ value: String(batch.id), label: `${batch.name} · ${batch.course.name}` }))} />
+        </Field>
+        <Field label="Education category" hint="Required before attendance for a category-specific topic" error={errors.educationCategoryId ?? categories.error ?? undefined}>
+          <SelectInput value={values.educationCategory} onChange={v => set('educationCategory', v)} placeholder={categories.loading ? "Loading categories…" : "Select category"} disabled={categories.loading || Boolean(categories.error)}
+            options={(categories.data ?? []).filter(c => c.active || c.id === student?.educationCategoryDetail?.id).map(c => ({ value: String(c.id), label: c.name + (c.active ? '' : ' (inactive)') }))} />
         </Field>
         <Field label="Date of birth" error={errors.dateOfBirth}><input type="date" className="input" value={values.dateOfBirth} onChange={e => set('dateOfBirth', e.target.value)} /></Field>
         <Field label="Gender"><SelectInput value={values.gender} onChange={v => set('gender', v)} placeholder="Select"
