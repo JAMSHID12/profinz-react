@@ -38,7 +38,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen flex-col lg:flex-row">
       <div className="flex flex-col justify-between bg-brand-800 px-8 py-10 text-white lg:w-5/12 lg:px-12">
         <div className="flex items-center gap-3">
-          <BrandMark size={44} />
+          <BrandMark size={32} />
           <div>
             <p className="text-lg font-semibold">{config.client.name}</p>
             {config.client.tagline && <p className="text-sm text-brand-200">{config.client.tagline}</p>}

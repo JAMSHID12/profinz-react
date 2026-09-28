@@ -83,7 +83,7 @@ function SidebarMenu({ sections, sectionIcons }: {
 }
 
 /** The client's full logo at its own proportions - or its name, when there is no logo or it cannot be loaded. */
-export function BrandLogo({ className = 'h-12' }: { className?: string }) {
+export function BrandLogo({ className = 'h-8' }: { className?: string }) {
   const { config } = useConfig();
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [config.client.logo]);
