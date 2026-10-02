@@ -1,3 +1,4 @@
+import { DatePicker } from '../../components/pickers';
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Printer } from 'lucide-react';
 import { portalApi } from '../../api/endpoints';
@@ -63,11 +64,11 @@ export function PortalAttendance() {
         <div className="grid grid-cols-2 gap-3 sm:max-w-md">
           <div>
             <label className="label">From</label>
-            <input type="date" className="input" value={from} max={to} onChange={(event) => setFrom(event.target.value)} />
+            <DatePicker className="input" value={from} max={to} onChange={(event) => setFrom(event.target.value)} />
           </div>
           <div>
             <label className="label">To</label>
-            <input type="date" className="input" value={to} min={from} onChange={(event) => setTo(event.target.value)} />
+            <DatePicker className="input" value={to} min={from} onChange={(event) => setTo(event.target.value)} />
           </div>
         </div>
       </Card>

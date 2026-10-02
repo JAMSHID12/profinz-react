@@ -282,13 +282,6 @@ export interface ScheduleEntry {
   notes?: string;
 }
 
-export interface ScheduleConflict {
-  type: 'FACULTY' | 'BATCH' | 'ROOM';
-  date: string;
-  message: string;
-  existing?: ScheduleEntry;
-}
-
 export interface RegisterEntry {
   id: number;
   schedule: ScheduleEntry;

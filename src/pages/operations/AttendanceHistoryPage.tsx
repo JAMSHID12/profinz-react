@@ -1,8 +1,9 @@
+import { SearchableSelect, DatePicker } from '../../components/pickers';
 import { useState } from 'react';
 import { Pencil } from 'lucide-react';
 import { attendanceApi } from '../../api/endpoints';
 import { useAction, useQuery } from '../../hooks/useQuery';
-import { useBatches, useStudents } from '../../hooks/lookups';
+import { useBatches, useStudents, useStudentOptionsSearch } from '../../hooks/lookups';
 import { DataTable } from '../../components/DataTable';
 import { enumOptions, FilterBar, refOptions, SelectInput } from '../../components/forms';
 import { Badge, Card, Modal, PageHeader, Pagination } from '../../components/ui';
@@ -18,6 +19,7 @@ export default function AttendanceHistoryPage() {
   const batches = useBatches();
   const [batchId, setBatchId] = useState('');
   const students = useStudents(batchId ? Number(batchId) : undefined);
+  const searchStudents = useStudentOptionsSearch(batchId ? Number(batchId) : undefined);
   const [studentId, setStudentId] = useState('');
   const [status, setStatus] = useState('');
   const [from, setFrom] = useState(isoDaysFromToday(-14));
@@ -67,13 +69,13 @@ export default function AttendanceHistoryPage() {
         subtitle="Mentors and faculty correct their own registers; parents are messaged only when a mark becomes absent or late" />
       <Card>
         <FilterBar>
-          <SelectInput value={batchId} onChange={(v) => filter(() => { setBatchId(v); setStudentId(''); })} options={refOptions(batches)} placeholder="All batches" />
-          <SelectInput value={studentId} onChange={(v) => filter(() => setStudentId(v))}
+          <SearchableSelect value={batchId} onChange={(v) => filter(() => { setBatchId(v); setStudentId(''); })} options={refOptions(batches)} placeholder="All batches" />
+          <SearchableSelect aria-label="Student" loadOptions={students.length >= 100 ? searchStudents : undefined} value={studentId} onChange={(v) => filter(() => setStudentId(v))}
             options={students.map((student) => ({ value: student.id, label: `${student.fullName} (${student.admissionNumber})` }))} placeholder="All students" />
           <SelectInput value={status} onChange={(v) => filter(() => setStatus(v))} options={enumOptions(ATTENDANCE_STATUSES)} placeholder="Any status" />
           <div className="grid grid-cols-2 gap-2">
-            <input type="date" className="input" value={from} max={to} onChange={(event) => filter(() => setFrom(event.target.value))} aria-label="From" />
-            <input type="date" className="input" value={to} min={from} onChange={(event) => filter(() => setTo(event.target.value))} aria-label="To" />
+            <DatePicker className="input" value={from} max={to} onChange={(event) => filter(() => setFrom(event.target.value))} aria-label="From" />
+            <DatePicker className="input" value={to} min={from} onChange={(event) => filter(() => setTo(event.target.value))} aria-label="To" />
           </div>
         </FilterBar>
         <DataTable

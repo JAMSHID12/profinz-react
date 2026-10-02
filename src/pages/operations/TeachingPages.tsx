@@ -1,3 +1,4 @@
+import { DatePicker, TimeSelect, SearchableSelect } from '../../components/pickers';
 import { useEffect, useState } from 'react';
 import { Pencil, Plus } from 'lucide-react';
 import { scheduleApi } from '../../api/endpoints';
@@ -50,8 +51,8 @@ export function ClassRegisterPage() {
         actions={can('CLASS_REGISTER_CREATE') && <button type="button" className="btn-primary" onClick={() => setOpen(true)}><Plus size={16} /> Record class</button>} />
       <Card>
         <FilterBar>
-          <input type="date" className="input" value={from} max={to} onChange={(event) => setFrom(event.target.value)} aria-label="From" />
-          <input type="date" className="input" value={to} min={from} onChange={(event) => setTo(event.target.value)} aria-label="To" />
+          <DatePicker className="input" value={from} max={to} onChange={(event) => setFrom(event.target.value)} aria-label="From" />
+          <DatePicker className="input" value={to} min={from} onChange={(event) => setTo(event.target.value)} aria-label="To" />
           {user?.facultyId && <div className="flex items-center"><Checkbox checked={mine} onChange={setMine} label="Only my classes" /></div>}
         </FilterBar>
         <DataTable rows={query.data} loading={query.loading} error={query.error} onRetry={query.reload} rowKey={(row) => row.id}
@@ -68,14 +69,14 @@ export function ClassRegisterPage() {
       <Modal open={open} title="Record a class" onClose={() => setOpen(false)}
         footer={<><button type="button" className="btn-secondary" onClick={() => setOpen(false)}>Cancel</button>
           <button type="button" className="btn-primary" onClick={save} disabled={busy || !values.scheduleId}>Save</button></>}>
-        <Field label="Date"><input type="date" className="input" value={day} max={todayIso()} onChange={(event) => setDay(event.target.value)} /></Field>
+        <Field label="Date"><DatePicker className="input" value={day} max={todayIso()} onChange={(event) => setDay(event.target.value)} /></Field>
         <Field label="Class" error={errors.scheduleId}>
           <SelectInput value={values.scheduleId} onChange={pickClass} placeholder={classes.data?.length === 0 ? 'No classes on this day' : 'Select'}
             options={(classes.data ?? []).map((entry) => ({ value: entry.id, label: `${entry.startTime}-${entry.endTime} ${entry.subject.name} (${entry.batch.name})` }))} />
         </Field>
         <div className="grid grid-cols-2 gap-x-4">
-          <Field label="Actual start" error={errors.actualStart}><input type="time" className="input" value={values.actualStart} onChange={(e) => set('actualStart', e.target.value)} /></Field>
-          <Field label="Actual end" error={errors.actualEnd}><input type="time" className="input" value={values.actualEnd} onChange={(e) => set('actualEnd', e.target.value)} /></Field>
+          <Field label="Actual start" error={errors.actualStart}><TimeSelect className="input" value={values.actualStart} onChange={(e) => set('actualStart', e.target.value)} /></Field>
+          <Field label="Actual end" error={errors.actualEnd}><TimeSelect className="input" value={values.actualEnd} onChange={(e) => set('actualEnd', e.target.value)} /></Field>
         </div>
         <Field label="Topic covered" error={errors.topicCovered}><TextArea value={values.topicCovered} onChange={(v) => set('topicCovered', v)} rows={2} /></Field>
         <div className="grid grid-cols-2 gap-x-4">
@@ -134,9 +135,9 @@ export function FacultyEntryExitPage() {
         actions={can('FACULTY_ENTRY_EXIT_CREATE') && <button type="button" className="btn-primary" onClick={() => setEditing('new')}><Plus size={16} /> Record entry</button>} />
       <Card>
         <FilterBar>
-          <input type="date" className="input" value={from} max={to} onChange={(event) => setFrom(event.target.value)} aria-label="From" />
-          <input type="date" className="input" value={to} min={from} onChange={(event) => setTo(event.target.value)} aria-label="To" />
-          {can('FACULTY_VIEW') && <SelectInput value={facultyId} onChange={setFacultyId} options={refOptions(faculty)} placeholder="All faculty" />}
+          <DatePicker className="input" value={from} max={to} onChange={(event) => setFrom(event.target.value)} aria-label="From" />
+          <DatePicker className="input" value={to} min={from} onChange={(event) => setTo(event.target.value)} aria-label="To" />
+          {can('FACULTY_VIEW') && <SearchableSelect value={facultyId} onChange={setFacultyId} options={refOptions(faculty)} placeholder="All faculty" />}
         </FilterBar>
         <DataTable rows={query.data} loading={query.loading} error={query.error} onRetry={query.reload} rowKey={(row) => row.id}
           empty="No entries in this period"
@@ -157,14 +158,14 @@ export function FacultyEntryExitPage() {
           <button type="button" className="btn-primary" onClick={save} disabled={busy}>Save</button></>}>
         {recordsForOthers && (
           <Field label="Faculty" error={errors.facultyId}>
-            <SelectInput value={values.facultyId} onChange={(v) => set('facultyId', v)} options={refOptions(faculty)} placeholder="Select" />
+            <SearchableSelect value={values.facultyId} onChange={(v) => set('facultyId', v)} options={refOptions(faculty)} placeholder="Select" />
           </Field>
         )}
         <div className="grid grid-cols-2 gap-x-4">
-          <Field label="Date" error={errors.entryDate}><input type="date" className="input" value={values.entryDate} onChange={(e) => set('entryDate', e.target.value)} /></Field>
+          <Field label="Date" error={errors.entryDate}><DatePicker className="input" value={values.entryDate} onChange={(e) => set('entryDate', e.target.value)} /></Field>
           <Field label="Session" error={errors.sessionLabel}><TextInput value={values.sessionLabel} onChange={(v) => set('sessionLabel', v)} placeholder="Evening" /></Field>
-          <Field label="Entry time" error={errors.entryTime}><input type="time" className="input" value={values.entryTime} onChange={(e) => set('entryTime', e.target.value)} /></Field>
-          <Field label="Exit time" error={errors.exitTime}><input type="time" className="input" value={values.exitTime} onChange={(e) => set('exitTime', e.target.value)} /></Field>
+          <Field label="Entry time" error={errors.entryTime}><TimeSelect className="input" value={values.entryTime} onChange={(e) => set('entryTime', e.target.value)} /></Field>
+          <Field label="Exit time" error={errors.exitTime}><TimeSelect className="input" value={values.exitTime} onChange={(e) => set('exitTime', e.target.value)} /></Field>
         </div>
         <Field label="Remarks"><TextInput value={values.remarks} onChange={(v) => set('remarks', v)} /></Field>
       </Modal>

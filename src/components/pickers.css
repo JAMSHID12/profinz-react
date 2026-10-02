@@ -1,0 +1,8 @@
+.picker-field { position: relative; display: block; min-width: 0; }
+.picker-validation { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; bottom: 0; left: 0; }
+.profinz-calendar { --rdp-accent-color: rgb(var(--brand-600)); --rdp-accent-background-color: rgb(var(--brand-50)); --rdp-day-height: 36px; --rdp-day-width: 36px; --rdp-day_button-height: 34px; --rdp-day_button-width: 34px; font-size: 13px; }
+.profinz-calendar .rdp-selected .rdp-day_button { background: rgb(var(--brand-600)); color: white; border-radius: 8px; }
+.profinz-calendar .rdp-month_caption { font-size: 14px; }
+.profinz-calendar .rdp-day_button:hover { background: rgb(var(--brand-50)); color: rgb(var(--brand-700)); }
+.profinz-calendar .rdp-dropdown { color: #0f172a; background: white; }
+

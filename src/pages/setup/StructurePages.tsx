@@ -1,10 +1,11 @@
+import { DatePicker } from '../../components/pickers';
 import { useEffect, useState } from 'react';
 import { Pencil, Plus } from 'lucide-react';
 import { academicApi } from '../../api/endpoints';
 import { useAction, useForm, useQuery } from '../../hooks/useQuery';
 import { useCourses, useMentors, useYears } from '../../hooks/lookups';
 import { useAuth } from '../../context/AuthContext';
-import { DataTable } from '../../components/DataTable';
+import { SetupTable as DataTable } from './SetupTable';
 import { blankToUndefined, Checkbox, enumOptions, Field, FilterBar, numberOrUndefined, refOptions, SelectInput, TextArea, TextInput } from '../../components/forms';
 import { Badge, Card, Modal, PageHeader } from '../../components/ui';
 import { formatDate } from '../../utils/format';
@@ -41,7 +42,7 @@ export function AcademicYearsPage() {
   };
 
   return (
-    <div>
+    <div className="setup-page">
       <PageHeader title="Academic years" subtitle="The current year is used by default for new batches and fee plans"
         actions={can('ACADEMIC_YEAR_MANAGE') && <button type="button" className="btn-primary" onClick={() => setEditing('new')}><Plus size={16} /> Add year</button>} />
       <Card>
@@ -53,18 +54,18 @@ export function AcademicYearsPage() {
             { header: 'Ends', render: (row) => formatDate(row.endDate) },
             { header: 'Current', render: (row) => (row.current ? <Badge value="ACTIVE" label="Current" /> : '') },
             { header: 'Status', render: (row) => <Badge value={row.status} /> },
-            { header: '', render: (row) => can('ACADEMIC_YEAR_MANAGE') && (
+            { header: 'Actions', render: (row) => can('ACADEMIC_YEAR_MANAGE') && (
               <button type="button" className="btn-ghost" onClick={() => setEditing(row)} aria-label="Edit"><Pencil size={14} /></button>
             ) },
           ]} />
       </Card>
-      <Modal open={editing !== null} title={existing ? 'Edit academic year' : 'Add academic year'} onClose={() => setEditing(null)}
+      <Modal className="setup-dialog" open={editing !== null} title={existing ? 'Edit academic year' : 'Add academic year'} onClose={() => setEditing(null)}
         footer={<><button type="button" className="btn-secondary" onClick={() => setEditing(null)}>Cancel</button>
           <button type="button" className="btn-primary" onClick={save} disabled={busy}>Save</button></>}>
         <Field label="Name" hint="Format 2026-2027" error={errors.name}><TextInput value={values.name} onChange={(v) => set('name', v)} /></Field>
         <div className="grid grid-cols-2 gap-x-4">
-          <Field label="Start date" error={errors.startDate}><input type="date" className="input" value={values.startDate} onChange={(e) => set('startDate', e.target.value)} /></Field>
-          <Field label="End date" error={errors.endDate}><input type="date" className="input" value={values.endDate} onChange={(e) => set('endDate', e.target.value)} /></Field>
+          <Field label="Start date" error={errors.startDate}><DatePicker className="input" value={values.startDate} onChange={(e) => set('startDate', e.target.value)} /></Field>
+          <Field label="End date" error={errors.endDate}><DatePicker className="input" value={values.endDate} onChange={(e) => set('endDate', e.target.value)} /></Field>
         </div>
         <Field label="Status"><SelectInput value={values.status} onChange={(v) => set('status', v)} options={enumOptions(YEAR_STATUS)} /></Field>
         <Checkbox checked={values.current} onChange={(v) => set('current', v)} label="This is the current academic year" />
@@ -83,7 +84,7 @@ export function BatchesPage() {
   const [editing, setEditing] = useState<Batch | 'new' | null>(null);
 
   return (
-    <div>
+    <div className="setup-page">
       <PageHeader title="Batches" subtitle={can('BATCH_VIEW') ? 'Groups of students by course and year' : 'Your batches'}
         actions={can('BATCH_CREATE') && <button type="button" className="btn-primary" onClick={() => setEditing('new')}><Plus size={16} /> Add batch</button>} />
       <Card>
@@ -100,7 +101,7 @@ export function BatchesPage() {
             { header: 'Mentor', render: (row) => row.mentor?.name ?? <span className="text-slate-400">Unassigned</span> },
             { header: 'Students', render: (row) => `${row.studentCount}${row.capacity ? ` / ${row.capacity}` : ''}` },
             { header: 'Status', render: (row) => <Badge value={row.status} /> },
-            { header: '', render: (row) => can('BATCH_UPDATE') && (
+            { header: 'Actions', render: (row) => can('BATCH_UPDATE') && (
               <button type="button" className="btn-ghost" onClick={() => setEditing(row)} aria-label="Edit"><Pencil size={14} /></button>
             ) },
           ]} />
@@ -158,7 +159,7 @@ function BatchDialog({ batch, courses, years, onClose, onSaved }: {
   };
 
   return (
-    <Modal open={batch !== null} title={existing ? `Edit ${existing.name}` : 'Add batch'} onClose={onClose} wide
+    <Modal className="setup-dialog" open={batch !== null} title={existing ? `Edit ${existing.name}` : 'Add batch'} onClose={onClose} wide
       footer={<><button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
         <button type="button" className="btn-primary" onClick={save} disabled={busy}>Save</button></>}>
       <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
@@ -166,8 +167,8 @@ function BatchDialog({ batch, courses, years, onClose, onSaved }: {
         <Field label="Course" error={errors.courseId}><SelectInput value={values.courseId} onChange={(v) => set('courseId', v)} options={refOptions(courses)} placeholder="Select" /></Field>
         <Field label="Academic year" error={errors.academicYearId}><SelectInput value={values.academicYearId} onChange={(v) => set('academicYearId', v)} options={refOptions(years)} placeholder="Select" /></Field>
         <Field label="Mentor"><SelectInput value={values.mentorId} onChange={(v) => set('mentorId', v)} options={refOptions(mentors)} placeholder="Unassigned" /></Field>
-        <Field label="Start date" error={errors.startDate}><input type="date" className="input" value={values.startDate} onChange={(e) => set('startDate', e.target.value)} /></Field>
-        <Field label="End date" error={errors.endDate}><input type="date" className="input" value={values.endDate} onChange={(e) => set('endDate', e.target.value)} /></Field>
+        <Field label="Start date" error={errors.startDate}><DatePicker className="input" value={values.startDate} onChange={(e) => set('startDate', e.target.value)} /></Field>
+        <Field label="End date" error={errors.endDate}><DatePicker className="input" value={values.endDate} onChange={(e) => set('endDate', e.target.value)} /></Field>
         <Field label="Capacity" error={errors.capacity}><TextInput value={values.capacity} onChange={(v) => set('capacity', v)} inputMode="numeric" /></Field>
         <Field label="Status"><SelectInput value={values.status} onChange={(v) => set('status', v)} options={enumOptions(BATCH_STATUS)} /></Field>
       </div>

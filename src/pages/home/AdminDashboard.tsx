@@ -1,3 +1,4 @@
+import { DatePicker, SearchableSelect } from '../../components/pickers';
 import { useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
@@ -277,11 +278,11 @@ function FilterCard({ draft, applied, onChange, onApply, onReset, courses, batch
         {draft.period === 'CUSTOM' && (
           <>
             <Field label="From">
-              <input type="date" className="input" value={draft.from} max={draft.to || today}
+              <DatePicker className="input" value={draft.from} max={draft.to || today}
                 onChange={(event) => set({ from: event.target.value })} />
             </Field>
             <Field label="To">
-              <input type="date" className="input" value={draft.to} min={draft.from || undefined} max={today}
+              <DatePicker className="input" value={draft.to} min={draft.from || undefined} max={today}
                 onChange={(event) => set({ to: event.target.value })} />
             </Field>
           </>
@@ -293,10 +294,7 @@ function FilterCard({ draft, applied, onChange, onApply, onReset, courses, batch
           </select>
         </Field>
         <Field label="Class / batch">
-          <select className="input" value={draft.batchId} onChange={(event) => set({ batchId: event.target.value })}>
-            <option value="">All classes</option>
-            {batchOptions.map((batch) => <option key={batch.id} value={batch.id}>{batch.name}</option>)}
-          </select>
+          <SearchableSelect value={draft.batchId} onChange={value => set({ batchId: value })} placeholder="All classes" options={batchOptions.map(batch => ({ value: batch.id, label: batch.name }))} />
         </Field>
         <Field label="Mentor">
           <select className="input" value={draft.mentorId} onChange={(event) => withBatchCheck({ mentorId: event.target.value })}>

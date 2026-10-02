@@ -50,7 +50,6 @@ import type {
   Receipt,
   RegisterEntry,
   RoleInfo,
-  ScheduleConflict,
   ScheduleEntry,
   SessionUser,
   SettingsView,
@@ -147,7 +146,6 @@ export const studentApi = {
 
 export const scheduleApi = {
   search: (filters?: Filters) => get<ScheduleEntry[]>('/schedules', filters),
-  conflicts: (body: Body, excludeId?: number) => post<ScheduleConflict[]>('/schedules/conflicts', body, { excludeId }),
   create: (body: Body) => post<ScheduleEntry[]>('/schedules', body),
   update: (id: number, body: Body) => put<ScheduleEntry>(`/schedules/${id}`, body),
   register: (filters?: Filters) => get<RegisterEntry[]>('/class-register', filters),

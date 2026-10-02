@@ -1,3 +1,4 @@
+import { SearchableSelect, DatePicker } from '../../components/pickers';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Pencil, Plus } from 'lucide-react';
@@ -36,9 +37,9 @@ export default function TestsPage() {
       <Tabs active={type} onChange={setType} tabs={[{ key: 'DAILY', label: 'Daily tests' }, { key: 'WEEKLY', label: 'Weekly tests' }]} />
       <Card>
         <FilterBar>
-          <SelectInput value={batchId} onChange={setBatchId} options={refOptions(batches)} placeholder="All batches" />
+          <SearchableSelect value={batchId} onChange={setBatchId} options={refOptions(batches)} placeholder="All batches" />
           <SelectInput value={status} onChange={setStatus} options={enumOptions(STATUSES)} placeholder="Any status" />
-          <input type="date" className="input" value={from} onChange={(event) => setFrom(event.target.value)} aria-label="From" />
+          <DatePicker className="input" value={from} onChange={(event) => setFrom(event.target.value)} aria-label="From" />
         </FilterBar>
         <DataTable rows={query.data} loading={query.loading} error={query.error} onRetry={query.reload} rowKey={(row) => row.id} empty="No tests found"
           columns={[
@@ -117,12 +118,12 @@ function TestDialog({ test, defaultType, onClose, onSaved }: {
         <Field label="Type"><SelectInput value={values.testType} onChange={(v) => set('testType', v)} options={enumOptions(['DAILY', 'WEEKLY'])} /></Field>
         <Field label="Title" error={errors.title}><TextInput value={values.title} onChange={(v) => set('title', v)} placeholder="Accounts daily test 6" /></Field>
         <Field label="Batch" error={errors.batchId}>
-          <SelectInput value={values.batchId} onChange={(v) => { set('batchId', v); set('subjectId', ''); }} options={refOptions(batches)} placeholder="Select" />
+          <SearchableSelect value={values.batchId} onChange={(v) => { set('batchId', v); set('subjectId', ''); }} options={refOptions(batches)} placeholder="Select" />
         </Field>
         <Field label="Subject" error={errors.subjectId}>
-          <SelectInput value={values.subjectId} onChange={(v) => set('subjectId', v)} options={refOptions(subjects)} placeholder={courseId ? 'Select' : 'Choose a batch first'} />
+          <SearchableSelect value={values.subjectId} onChange={(v) => set('subjectId', v)} options={refOptions(subjects)} placeholder={courseId ? 'Select' : 'Choose a batch first'} />
         </Field>
-        <Field label="Date" error={errors.testDate}><input type="date" className="input" value={values.testDate} onChange={(e) => set('testDate', e.target.value)} /></Field>
+        <Field label="Date" error={errors.testDate}><DatePicker className="input" value={values.testDate} onChange={(e) => set('testDate', e.target.value)} /></Field>
         <Field label="Maximum marks" error={errors.maxMarks}><TextInput value={values.maxMarks} onChange={(v) => set('maxMarks', v)} inputMode="decimal" /></Field>
         {values.testType === 'WEEKLY' && (
           <Field label="Week number" error={errors.weekNumber}><TextInput value={values.weekNumber} onChange={(v) => set('weekNumber', v)} inputMode="numeric" /></Field>

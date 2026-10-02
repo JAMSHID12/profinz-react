@@ -1,3 +1,4 @@
+import { SearchableSelect } from '../../components/pickers';
 import { useState } from 'react';
 import { educationLabel } from '../../utils/eligibility';
 import { useNavigate } from 'react-router-dom';
@@ -35,7 +36,7 @@ export default function StudentsPage() {
       <Card>
         <FilterBar>
           <TextInput value={search} onChange={setSearch} placeholder="Search name or admission number" />
-          <SelectInput value={batchId} onChange={setBatchId} options={refOptions(batches)} placeholder="All batches" />
+          <SearchableSelect value={batchId} onChange={setBatchId} options={refOptions(batches)} placeholder="All batches" />
           <SelectInput value={status} onChange={setStatus} options={enumOptions(STATUSES)} placeholder="Any status" />
         </FilterBar>
         <DataTable

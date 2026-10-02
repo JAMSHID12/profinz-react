@@ -1,9 +1,10 @@
+import { SearchableSelect, DatePicker } from '../../components/pickers';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { BellRing, Percent, Plus } from 'lucide-react';
 import { feeApi } from '../../api/endpoints';
 import { useAction, useForm, useQuery } from '../../hooks/useQuery';
-import { useBatches, useCourses, useStudents } from '../../hooks/lookups';
+import { useBatches, useCourses, useStudents, useStudentOptionsSearch } from '../../hooks/lookups';
 import { useAuth } from '../../context/AuthContext';
 import { DataTable } from '../../components/DataTable';
 import { blankToUndefined, Checkbox, enumOptions, Field, FilterBar, numberOrUndefined, refOptions, SelectInput, TextInput } from '../../components/forms';
@@ -67,7 +68,7 @@ function InstallmentsTab() {
   return (
     <Card>
       <FilterBar>
-        <SelectInput value={batchId} onChange={setBatchId} options={refOptions(batches)} placeholder="All batches" />
+        <SearchableSelect value={batchId} onChange={setBatchId} options={refOptions(batches)} placeholder="All batches" />
         <SelectInput value={status} onChange={setStatus} options={enumOptions(STATUSES)} placeholder="Any status" />
         <div className="flex items-center text-sm text-slate-600 lg:col-span-2">
           {rows && <span>Balance of listed installments: <span className="font-semibold text-slate-800">{formatMoney(balance)}</span></span>}
@@ -144,7 +145,7 @@ function PaymentDialog({ installment, onClose, onPaid }: { installment: Installm
       )}
       <div className="grid grid-cols-2 gap-x-4">
         <Field label="Amount" error={errors.amount}><TextInput value={values.amount} onChange={(v) => set('amount', v)} inputMode="decimal" /></Field>
-        <Field label="Date" error={errors.paymentDate}><input type="date" className="input" value={values.paymentDate} max={todayIso()} onChange={(e) => set('paymentDate', e.target.value)} /></Field>
+        <Field label="Date" error={errors.paymentDate}><DatePicker className="input" value={values.paymentDate} max={todayIso()} onChange={(e) => set('paymentDate', e.target.value)} /></Field>
         <Field label="Method"><SelectInput value={values.paymentMethod} onChange={(v) => set('paymentMethod', v)} options={enumOptions(METHODS)} /></Field>
         <Field label="Reference"><TextInput value={values.referenceNumber} onChange={(v) => set('referenceNumber', v)} placeholder="UPI / cheque no." /></Field>
       </div>
@@ -263,6 +264,7 @@ function NewPlanDialog({ open, onClose, onSaved }: { open: boolean; onClose: () 
   const [firstDueDate, setFirstDueDate] = useState(todayIso());
   const [notes, setNotes] = useState('');
   const students = useStudents(batchId ? Number(batchId) : undefined);
+  const searchStudents = useStudentOptionsSearch(batchId ? Number(batchId) : undefined);
   const { run, busy, errors, setErrors } = useAction();
 
   useEffect(() => {
@@ -332,12 +334,12 @@ function NewPlanDialog({ open, onClose, onSaved }: { open: boolean; onClose: () 
       </Field>
       <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
         <Field label="Batch" error={errors.batchId}>
-          <SelectInput value={batchId} onChange={(v) => { setBatchId(v); setStudentId(''); setDiscounts({}); }}
+          <SearchableSelect value={batchId} onChange={(v) => { setBatchId(v); setStudentId(''); setDiscounts({}); }}
             options={refOptions(batches)} placeholder={mode === 'batch' ? 'Select' : 'All batches'} />
         </Field>
         {mode === 'student' && (
           <Field label="Student" error={errors.studentId}>
-            <SelectInput value={studentId} onChange={setStudentId} placeholder="Select"
+            <SearchableSelect aria-label="Student" loadOptions={students.length >= 100 ? searchStudents : undefined} value={studentId} onChange={setStudentId} placeholder="Select"
               options={students.map((row) => ({ value: row.id, label: `${row.fullName} (${row.admissionNumber})` }))} />
           </Field>
         )}
@@ -391,7 +393,7 @@ function NewPlanDialog({ open, onClose, onSaved }: { open: boolean; onClose: () 
           <TextInput value={installments} onChange={setInstallments} inputMode="numeric" placeholder={String(course?.defaultInstallments ?? 1)} />
         </Field>
         <Field label="First due date" hint="Then monthly" error={errors.firstDueDate}>
-          <input type="date" className="input" value={firstDueDate} onChange={(event) => setFirstDueDate(event.target.value)} />
+          <DatePicker className="input" value={firstDueDate} onChange={(event) => setFirstDueDate(event.target.value)} />
         </Field>
         <Field label="Notes"><TextInput value={notes} onChange={setNotes} /></Field>
       </div>

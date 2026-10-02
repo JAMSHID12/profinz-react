@@ -3,7 +3,7 @@ import { Pencil, Plus } from 'lucide-react';
 import { academicApi } from '../../api/endpoints';
 import { useAction, useForm, useQuery } from '../../hooks/useQuery';
 import { useAuth } from '../../context/AuthContext';
-import { DataTable } from '../../components/DataTable';
+import { SetupTable as DataTable } from './SetupTable';
 import { enumOptions, Field, numberOrUndefined, refOptions, SelectInput, TextArea, TextInput } from '../../components/forms';
 import { Badge, Card, CardHeader, Modal, PageHeader } from '../../components/ui';
 import { formatMoney } from '../../utils/format';
@@ -14,6 +14,7 @@ const STATUS = ['ACTIVE', 'INACTIVE'] as const;
 /** Courses and their subjects are client master data - nothing here is hard-coded. */
 export default function CoursesPage() {
   const { can } = useAuth();
+  const [section, setSection] = useState<'courses' | 'subjects'>('courses');
   const courses = useQuery(() => academicApi.courses(), []);
   const [selected, setSelected] = useState<Course | null>(null);
   const subjects = useQuery(() => academicApi.subjects(selected?.id), [selected?.id], Boolean(selected));
@@ -21,32 +22,31 @@ export default function CoursesPage() {
   const [editSubject, setEditSubject] = useState<Subject | 'new' | null>(null);
 
   useEffect(() => {
-    if (!selected && courses.data && courses.data.length > 0) setSelected(courses.data[0]);
-  }, [courses.data, selected]);
+    if (courses.data?.length) setSelected(current => courses.data!.find(course => course.id === current?.id) ?? courses.data![0]);
+  }, [courses.data]);
 
   return (
-    <div>
+    <div className="setup-page">
       <PageHeader
         title="Courses and subjects"
         subtitle="The programmes this centre offers"
-        actions={can('COURSE_CREATE') && (
-          <button type="button" className="btn-primary" onClick={() => setEditCourse('new')}><Plus size={16} /> Add course</button>
-        )}
+
       />
-      <div className="grid gap-5 lg:grid-cols-5">
-        <Card className="lg:col-span-2">
-          <CardHeader title="Courses" />
+      <nav className="setup-tabs" aria-label="Course sections"><button type="button" aria-pressed={section === 'courses'} onClick={() => setSection('courses')}>Courses</button><button type="button" aria-pressed={section === 'subjects'} onClick={() => setSection('subjects')}>Subjects</button></nav>
+      <div>
+        {section === 'courses' && <Card>
+          <CardHeader title="Courses" subtitle="Manage programmes, course fees and the subjects offered." actions={can('COURSE_CREATE') && <button type="button" className="btn-primary" onClick={() => setEditCourse('new')}><Plus size={18} /> Add course</button>} />
           <DataTable
             rows={courses.data}
             loading={courses.loading}
             error={courses.error}
             onRetry={courses.reload}
             rowKey={(row) => row.id}
-            onRowClick={setSelected}
+            onRowClick={course => { setSelected(course); setSection('subjects'); }}
             empty="No courses yet"
             columns={[
               { header: 'Code', render: (row) => <span className={`font-mono text-xs ${row.id === selected?.id ? 'font-bold text-brand-700' : ''}`}>{row.code}</span> },
-              { header: 'Name', render: (row) => <span className={row.id === selected?.id ? 'font-semibold text-brand-700' : ''}>{row.name}</span> },
+              { header: 'Name', render: (row) => <button type="button" className="setup-course-link" onClick={() => { setSelected(row); setSection('subjects'); }}>{row.name}</button> },
               { header: 'Course fee', render: (row) => (
                 row.feeAmount !== undefined && row.feeAmount !== null ? (
                   <span className="whitespace-nowrap">
@@ -57,23 +57,25 @@ export default function CoursesPage() {
               ) },
               { header: 'Subjects', render: (row) => row.subjectCount },
               { header: 'Status', render: (row) => <Badge value={row.status} /> },
-              { header: '', render: (row) => can('COURSE_UPDATE') && (
+              { header: 'Actions', render: (row) => can('COURSE_UPDATE') && (
                 <button type="button" className="btn-ghost" onClick={(event) => { event.stopPropagation(); setEditCourse(row); }} aria-label="Edit course"><Pencil size={14} /></button>
               ) },
             ]}
           />
-        </Card>
-        <Card className="lg:col-span-3">
+        </Card>}
+        {section === 'subjects' && <Card>
           <CardHeader
-            title={selected ? `Subjects of ${selected.name}` : 'Subjects'}
+            title="Subjects" subtitle="Select a course to manage its subjects and their display order."
             actions={selected && can('SUBJECT_CREATE') && (
-              <button type="button" className="btn-secondary btn-sm" onClick={() => setEditSubject('new')}><Plus size={14} /> Add subject</button>
+              <button type="button" className="btn-primary" onClick={() => setEditSubject('new')}><Plus size={14} /> Add subject</button>
             )}
           />
-          <DataTable
+          <div className="setup-course-picker"><label htmlFor="setup-course">Course</label><SelectInput id="setup-course" value={selected?.id ?? ''} options={refOptions(courses.data ?? [])} placeholder="Select course" onChange={value => setSelected(courses.data?.find(course => course.id === Number(value)) ?? null)} /></div>
+          <DataTable key={selected?.id}
             rows={selected ? subjects.data : []}
             loading={subjects.loading}
             error={subjects.error}
+            onRetry={subjects.reload}
             rowKey={(row) => row.id}
             empty={selected ? 'No subjects yet' : 'Select a course'}
             columns={[
@@ -81,12 +83,12 @@ export default function CoursesPage() {
               { header: 'Code', render: (row) => <span className="font-mono text-xs">{row.code}</span> },
               { header: 'Name', render: (row) => row.name },
               { header: 'Status', render: (row) => <Badge value={row.status} /> },
-              { header: '', render: (row) => can('SUBJECT_UPDATE') && (
+              { header: 'Actions', render: (row) => can('SUBJECT_UPDATE') && (
                 <button type="button" className="btn-ghost" onClick={() => setEditSubject(row)} aria-label="Edit subject"><Pencil size={14} /></button>
               ) },
             ]}
           />
-        </Card>
+        </Card>}
       </div>
       <CourseDialog course={editCourse} onClose={() => setEditCourse(null)} onSaved={() => { setEditCourse(null); courses.reload(); }} />
       <SubjectDialog subject={editSubject} courses={courses.data ?? []} defaultCourse={selected}
@@ -129,7 +131,7 @@ function CourseDialog({ course, onClose, onSaved }: { course: Course | 'new' | n
   };
 
   return (
-    <Modal open={course !== null} title={existing ? 'Edit course' : 'Add course'} onClose={onClose}
+    <Modal className="setup-dialog" open={course !== null} title={existing ? 'Edit course' : 'Add course'} onClose={onClose}
       footer={<><button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
         <button type="button" className="btn-primary" onClick={save} disabled={busy}>Save</button></>}>
       <div className="grid grid-cols-2 gap-x-4">
@@ -189,7 +191,7 @@ function SubjectDialog({ subject, courses, defaultCourse, onClose, onSaved }: {
   };
 
   return (
-    <Modal open={subject !== null} title={existing ? 'Edit subject' : 'Add subject'} onClose={onClose}
+    <Modal className="setup-dialog" open={subject !== null} title={existing ? 'Edit subject' : 'Add subject'} onClose={onClose}
       footer={<><button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
         <button type="button" className="btn-primary" onClick={save} disabled={busy}>Save</button></>}>
       <Field label="Course" error={errors.courseId}>

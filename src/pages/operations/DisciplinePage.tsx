@@ -1,8 +1,9 @@
+import { SearchableSelect, DatePicker } from '../../components/pickers';
 import { useEffect, useState } from 'react';
 import { Pencil, Plus } from 'lucide-react';
 import { disciplineApi } from '../../api/endpoints';
 import { useAction, useForm, useQuery } from '../../hooks/useQuery';
-import { useBatches, useDisciplineTypes, useStudents } from '../../hooks/lookups';
+import { useBatches, useDisciplineTypes, useStudents, useStudentOptionsSearch } from '../../hooks/lookups';
 import { useAuth } from '../../context/AuthContext';
 import { DataTable } from '../../components/DataTable';
 import { blankToUndefined, enumOptions, Field, FilterBar, numberOrUndefined, refOptions, SelectInput, TextArea, TextInput } from '../../components/forms';
@@ -33,11 +34,12 @@ export function StudentPicker({ batchId, studentId, onBatch, onStudent, error }:
 }) {
   const batches = useBatches();
   const students = useStudents(batchId ? Number(batchId) : undefined);
+  const searchStudents = useStudentOptionsSearch(batchId ? Number(batchId) : undefined);
   return (
     <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
-      <Field label="Batch"><SelectInput value={batchId} onChange={(v) => { onBatch(v); onStudent(''); }} options={refOptions(batches)} placeholder="All batches" /></Field>
+      <Field label="Batch"><SearchableSelect value={batchId} onChange={(v) => { onBatch(v); onStudent(''); }} options={refOptions(batches)} placeholder="All batches" /></Field>
       <Field label="Student" error={error}>
-        <SelectInput value={studentId} onChange={onStudent} placeholder="Select"
+        <SearchableSelect aria-label="Student" loadOptions={students.length >= 100 ? searchStudents : undefined} value={studentId} onChange={onStudent} placeholder="Select"
           options={students.map((student) => ({ value: student.id, label: `${student.fullName} (${student.admissionNumber})` }))} />
       </Field>
     </div>
@@ -103,9 +105,9 @@ function RecordsTab() {
   return (
     <Card>
       <FilterBar>
-        <SelectInput value={batchId} onChange={setBatchId} options={refOptions(batches)} placeholder="All batches" />
-        <input type="date" className="input" value={from} max={to} onChange={(event) => setFrom(event.target.value)} aria-label="From" />
-        <input type="date" className="input" value={to} min={from} onChange={(event) => setTo(event.target.value)} aria-label="To" />
+        <SearchableSelect value={batchId} onChange={setBatchId} options={refOptions(batches)} placeholder="All batches" />
+        <DatePicker className="input" value={from} max={to} onChange={(event) => setFrom(event.target.value)} aria-label="From" />
+        <DatePicker className="input" value={to} min={from} onChange={(event) => setTo(event.target.value)} aria-label="To" />
         <div className="flex justify-end">
           {can('DISCIPLINE_CREATE') && <button type="button" className="btn-primary" onClick={() => setEditing('new')}><Plus size={16} /> Record incident</button>}
         </div>
@@ -134,7 +136,7 @@ function RecordsTab() {
         )}
         <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
           <Field label="Type" error={errors.disciplineTypeId}><SelectInput value={values.disciplineTypeId} onChange={chooseType} options={refOptions(types)} placeholder="Select" /></Field>
-          <Field label="Date" error={errors.incidentDate}><input type="date" className="input" value={values.incidentDate} max={todayIso()} onChange={(e) => set('incidentDate', e.target.value)} /></Field>
+          <Field label="Date" error={errors.incidentDate}><DatePicker className="input" value={values.incidentDate} max={todayIso()} onChange={(e) => set('incidentDate', e.target.value)} /></Field>
         </div>
         <Field label="What happened" error={errors.description}><TextArea value={values.description} onChange={(v) => set('description', v)} rows={2} /></Field>
         <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
@@ -145,7 +147,7 @@ function RecordsTab() {
               <Field label="Fine amount (optional)" hint="Creates a fine for the student" error={errors.fineAmount}>
                 <TextInput value={values.fineAmount} onChange={(v) => set('fineAmount', v)} inputMode="decimal" />
               </Field>
-              <Field label="Fine due date"><input type="date" className="input" value={values.fineDueDate} onChange={(e) => set('fineDueDate', e.target.value)} /></Field>
+              <Field label="Fine due date"><DatePicker className="input" value={values.fineDueDate} onChange={(e) => set('fineDueDate', e.target.value)} /></Field>
             </>
           )}
         </div>
@@ -195,7 +197,7 @@ function FinesTab() {
   return (
     <Card>
       <FilterBar>
-        <SelectInput value={batchId} onChange={setBatchId} options={refOptions(batches)} placeholder="All batches" />
+        <SearchableSelect value={batchId} onChange={setBatchId} options={refOptions(batches)} placeholder="All batches" />
         <SelectInput value={status} onChange={setStatus} options={enumOptions(FINE_STATUSES)} placeholder="Any status" />
         <div />
         <div className="flex justify-end">
@@ -223,8 +225,8 @@ function FinesTab() {
         <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
           <Field label="Reason" error={errors.reason}><TextInput value={create.values.reason} onChange={(v) => create.set('reason', v)} /></Field>
           <Field label="Amount" error={errors.amount}><TextInput value={create.values.amount} onChange={(v) => create.set('amount', v)} inputMode="decimal" /></Field>
-          <Field label="Fine date" error={errors.fineDate}><input type="date" className="input" value={create.values.fineDate} onChange={(e) => create.set('fineDate', e.target.value)} /></Field>
-          <Field label="Due date"><input type="date" className="input" value={create.values.dueDate} onChange={(e) => create.set('dueDate', e.target.value)} /></Field>
+          <Field label="Fine date" error={errors.fineDate}><DatePicker className="input" value={create.values.fineDate} onChange={(e) => create.set('fineDate', e.target.value)} /></Field>
+          <Field label="Due date"><DatePicker className="input" value={create.values.dueDate} onChange={(e) => create.set('dueDate', e.target.value)} /></Field>
         </div>
         <Field label="Remarks"><TextInput value={create.values.remarks} onChange={(v) => create.set('remarks', v)} /></Field>
       </Modal>
@@ -235,7 +237,7 @@ function FinesTab() {
         <Field label="New status"><SelectInput value={change.values.status} onChange={(v) => change.set('status', v)} options={enumOptions(['PAID', 'WAIVED', 'CANCELLED'])} /></Field>
         {change.values.status === 'PAID' && (
           <div className="grid grid-cols-2 gap-x-4">
-            <Field label="Paid on" error={errors.paidDate}><input type="date" className="input" value={change.values.paidDate} onChange={(e) => change.set('paidDate', e.target.value)} /></Field>
+            <Field label="Paid on" error={errors.paidDate}><DatePicker className="input" value={change.values.paidDate} onChange={(e) => change.set('paidDate', e.target.value)} /></Field>
             <Field label="Reference"><TextInput value={change.values.paymentReference} onChange={(v) => change.set('paymentReference', v)} /></Field>
           </div>
         )}

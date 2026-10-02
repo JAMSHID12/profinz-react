@@ -1,3 +1,4 @@
+import { SearchableSelect, DatePicker, TimeSelect } from '../../components/pickers';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Pencil, Plus } from 'lucide-react';
@@ -34,9 +35,9 @@ export default function ExamsPage() {
         actions={can('EXAM_CREATE') && <button type="button" className="btn-primary" onClick={() => setEditing('new')}><Plus size={16} /> New exam</button>} />
       <Card>
         <FilterBar>
-          <SelectInput value={batchId} onChange={setBatchId} options={refOptions(batches)} placeholder="All batches" />
+          <SearchableSelect value={batchId} onChange={setBatchId} options={refOptions(batches)} placeholder="All batches" />
           <SelectInput value={status} onChange={setStatus} options={enumOptions(STATUSES)} placeholder="Any status" />
-          <input type="date" className="input" value={from} onChange={(event) => setFrom(event.target.value)} aria-label="From" />
+          <DatePicker className="input" value={from} onChange={(event) => setFrom(event.target.value)} aria-label="From" />
         </FilterBar>
         <DataTable rows={query.data} loading={query.loading} error={query.error} onRetry={query.reload} rowKey={(row) => row.id} empty="No exams found"
           columns={[
@@ -121,15 +122,15 @@ function ExamDialog({ exam, onClose, onSaved }: { exam: Exam | 'new' | null; onC
         <Field label="Exam name" error={errors.name}><TextInput value={values.name} onChange={(v) => set('name', v)} /></Field>
         <Field label="Exam type" error={errors.examTypeId}><SelectInput value={values.examTypeId} onChange={(v) => set('examTypeId', v)} options={refOptions(examTypes)} placeholder="Select" /></Field>
         <Field label="Batch" error={errors.batchId}>
-          <SelectInput value={values.batchId} onChange={(v) => { set('batchId', v); set('subjectId', ''); }} options={refOptions(batches)} placeholder="Select" />
+          <SearchableSelect value={values.batchId} onChange={(v) => { set('batchId', v); set('subjectId', ''); }} options={refOptions(batches)} placeholder="Select" />
         </Field>
         <Field label="Subject" error={errors.subjectId}>
-          <SelectInput value={values.subjectId} onChange={(v) => set('subjectId', v)} options={refOptions(subjects)} placeholder={courseId ? 'Select' : 'Choose a batch first'} />
+          <SearchableSelect value={values.subjectId} onChange={(v) => set('subjectId', v)} options={refOptions(subjects)} placeholder={courseId ? 'Select' : 'Choose a batch first'} />
         </Field>
-        <Field label="Date" error={errors.examDate}><input type="date" className="input" value={values.examDate} onChange={(e) => set('examDate', e.target.value)} /></Field>
-        <Field label="Invigilator / faculty"><SelectInput value={values.facultyId} onChange={(v) => set('facultyId', v)} options={refOptions(faculty)} placeholder="None" /></Field>
-        <Field label="Start" error={errors.startTime}><input type="time" className="input" value={values.startTime} onChange={(e) => set('startTime', e.target.value)} /></Field>
-        <Field label="End" error={errors.endTime}><input type="time" className="input" value={values.endTime} onChange={(e) => set('endTime', e.target.value)} /></Field>
+        <Field label="Date" error={errors.examDate}><DatePicker className="input" value={values.examDate} onChange={(e) => set('examDate', e.target.value)} /></Field>
+        <Field label="Invigilator / faculty"><SearchableSelect value={values.facultyId} onChange={(v) => set('facultyId', v)} options={refOptions(faculty)} placeholder="None" /></Field>
+        <Field label="Start" error={errors.startTime}><TimeSelect className="input" value={values.startTime} onChange={(e) => set('startTime', e.target.value)} /></Field>
+        <Field label="End" error={errors.endTime}><TimeSelect className="input" value={values.endTime} onChange={(e) => set('endTime', e.target.value)} /></Field>
         <Field label="Maximum marks" error={errors.maxMarks}><TextInput value={values.maxMarks} onChange={(v) => set('maxMarks', v)} inputMode="decimal" /></Field>
         <Field label="Passing marks" error={errors.passingMarks}><TextInput value={values.passingMarks} onChange={(v) => set('passingMarks', v)} inputMode="decimal" /></Field>
       </div>

@@ -1,3 +1,4 @@
+import { SearchableSelect, DatePicker } from '../../components/pickers';
 import { useEffect, useState } from 'react';
 import { eligibilityLabel } from '../../utils/eligibility';
 import { Pencil, Plus } from 'lucide-react';
@@ -68,7 +69,7 @@ function ProgressTab() {
     <div className="space-y-4">
       <Card className="p-4">
         <div className="sm:max-w-xs">
-          <SelectInput value={batchId} onChange={setBatchId} options={refOptions(batches)} placeholder="Select a batch" />
+          <SearchableSelect value={batchId} onChange={setBatchId} options={refOptions(batches)} placeholder="Select a batch" />
         </div>
       </Card>
       {!batchId ? <Card><EmptyState title="Choose a batch" /></Card> : (
@@ -84,8 +85,8 @@ function ProgressTab() {
           <SelectInput value={values.status} onChange={(v) => set('status', v)} options={enumOptions(STATUSES.filter((s) => s !== 'DELAYED'))} />
         </Field>
         <div className="grid grid-cols-2 gap-x-4">
-          <Field label="Planned date"><input type="date" className="input" value={values.plannedDate} onChange={(e) => set('plannedDate', e.target.value)} /></Field>
-          <Field label="Completed on" error={errors.completedDate}><input type="date" className="input" value={values.completedDate} onChange={(e) => set('completedDate', e.target.value)} /></Field>
+          <Field label="Planned date"><DatePicker className="input" value={values.plannedDate} onChange={(e) => set('plannedDate', e.target.value)} /></Field>
+          <Field label="Completed on" error={errors.completedDate}><DatePicker className="input" value={values.completedDate} onChange={(e) => set('completedDate', e.target.value)} /></Field>
         </div>
         <Field label="Remarks"><TextInput value={values.remarks} onChange={(v) => set('remarks', v)} /></Field>
       </Modal>
@@ -139,7 +140,7 @@ function TopicsTab() {
     <Card>
       <FilterBar>
         <SelectInput value={courseId} onChange={(v) => { setCourseId(v); setSubjectId(''); }} options={refOptions(courses)} placeholder="All courses" />
-        <SelectInput value={subjectId} onChange={setSubjectId} options={refOptions(subjects)} placeholder="All subjects" />
+        <SearchableSelect value={subjectId} onChange={setSubjectId} options={refOptions(subjects)} placeholder="All subjects" />
         <div />
         <div className="flex justify-end"><button type="button" className="btn-primary" onClick={() => setEditing('new')}><Plus size={16} /> Add topic</button></div>
       </FilterBar>
@@ -158,7 +159,7 @@ function TopicsTab() {
         footer={<><button type="button" className="btn-secondary" onClick={() => setEditing(null)}>Cancel</button>
           <button type="button" className="btn-primary" onClick={save} disabled={busy}>Save</button></>}>
         <Field label="Subject" error={errors.subjectId}>
-          <SelectInput value={values.subjectId} onChange={(v) => set('subjectId', v)} placeholder="Select"
+          <SearchableSelect value={values.subjectId} onChange={(v) => set('subjectId', v)} placeholder="Select"
             options={subjects.map((subject) => ({ value: subject.id, label: `${subject.name} (${subject.course.name})` }))} />
         </Field>
         <Field label="Title" error={errors.title}><TextInput value={values.title} onChange={(v) => set('title', v)} /></Field>

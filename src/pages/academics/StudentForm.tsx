@@ -1,3 +1,4 @@
+import { SearchableSelect, DatePicker } from '../../components/pickers';
 import { useEffect, useState } from 'react';
 import { studentApi, educationCategoryApi } from '../../api/endpoints';
 import { useAction, useForm, useQuery } from '../../hooks/useQuery';
@@ -81,19 +82,19 @@ export default function StudentForm({ open, student, onClose, onSaved }: {
       <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
         <Field label="Full name" error={errors.fullName}><TextInput value={values.fullName} onChange={v => set('fullName', v)} /></Field>
         <Field label="Batch / class" hint={student ? 'Use Move to batch to change placement' : 'Course is determined by the selected batch'} error={errors.batchId}>
-          <SelectInput value={values.batchId} onChange={v => set('batchId', v)} disabled={Boolean(student)} placeholder="Select batch"
+          <SearchableSelect value={values.batchId} onChange={v => set('batchId', v)} disabled={Boolean(student)} placeholder="Select batch"
             options={batches.map(batch => ({ value: String(batch.id), label: `${batch.name} · ${batch.course.name}` }))} />
         </Field>
         <Field label="Education category" hint="Required before attendance for a category-specific topic" error={errors.educationCategoryId ?? categories.error ?? undefined}>
           <SelectInput value={values.educationCategory} onChange={v => set('educationCategory', v)} placeholder={categories.loading ? "Loading categories…" : "Select category"} disabled={categories.loading || Boolean(categories.error)}
             options={(categories.data ?? []).filter(c => c.active || c.id === student?.educationCategoryDetail?.id).map(c => ({ value: String(c.id), label: c.name + (c.active ? '' : ' (inactive)') }))} />
         </Field>
-        <Field label="Date of birth" error={errors.dateOfBirth}><input type="date" className="input" value={values.dateOfBirth} onChange={e => set('dateOfBirth', e.target.value)} /></Field>
+        <Field label="Date of birth" error={errors.dateOfBirth}><DatePicker className="input" value={values.dateOfBirth} onChange={e => set('dateOfBirth', e.target.value)} /></Field>
         <Field label="Gender"><SelectInput value={values.gender} onChange={v => set('gender', v)} placeholder="Select"
           options={['Female', 'Male', 'Other'].map(value => ({ value, label: value }))} /></Field>
         <Field label="Student mobile" error={errors.mobile}><TextInput value={values.mobile} onChange={v => set('mobile', v)} inputMode="tel" /></Field>
         <Field label="E-mail" error={errors.email}><TextInput value={values.email} onChange={v => set('email', v)} type="email" /></Field>
-        <Field label="Admission date" error={errors.admissionDate} hint="Defaults to today"><input type="date" className="input" value={values.admissionDate} onChange={e => set('admissionDate', e.target.value)} /></Field>
+        <Field label="Admission date" error={errors.admissionDate} hint="Defaults to today"><DatePicker className="input" value={values.admissionDate} onChange={e => set('admissionDate', e.target.value)} /></Field>
         {student && <Field label="Status"><SelectInput value={values.status} onChange={v => set('status', v)} options={enumOptions(STATUSES)} /></Field>}
       </div>
       <div className="my-4 border-t border-slate-200 pt-4">

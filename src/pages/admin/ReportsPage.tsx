@@ -1,3 +1,4 @@
+import { DatePicker, SearchableSelect } from '../../components/pickers';
 import { useState } from 'react';
 import { Printer } from 'lucide-react';
 import { reportApi } from '../../api/endpoints';
@@ -7,7 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useConfig } from '../../context/ConfigContext';
 import { DataTable } from '../../components/DataTable';
 import { AttendanceStats } from '../../components/academic';
-import { refOptions, SelectInput } from '../../components/forms';
+import { refOptions, } from '../../components/forms';
 import { Badge, Card, CardHeader, EmptyState, Loadable, PageHeader, StatCard, Tabs } from '../../components/ui';
 import { formatMoney, formatPercent, isoDaysFromToday, titleCase, todayIso } from '../../utils/format';
 
@@ -34,10 +35,10 @@ export default function ReportsPage() {
       ]} />
       <Card className="no-print mb-5 p-4">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <input type="date" className="input" value={from} max={to} onChange={(event) => setFrom(event.target.value)} aria-label="From" />
-          <input type="date" className="input" value={to} min={from} onChange={(event) => setTo(event.target.value)} aria-label="To" />
+          <DatePicker className="input" value={from} max={to} onChange={(event) => setFrom(event.target.value)} aria-label="From" />
+          <DatePicker className="input" value={to} min={from} onChange={(event) => setTo(event.target.value)} aria-label="To" />
           {(tab === 'attendance' || tab === 'academic') && (
-            <SelectInput value={batchId} onChange={setBatchId} options={refOptions(batches)} placeholder={tab === 'academic' ? 'Select a batch' : 'All batches'} />
+            <SearchableSelect value={batchId} onChange={setBatchId} options={refOptions(batches)} placeholder={tab === 'academic' ? 'Select a batch' : 'All batches'} />
           )}
         </div>
       </Card>

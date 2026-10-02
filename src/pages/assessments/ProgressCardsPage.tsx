@@ -1,3 +1,4 @@
+import { SearchableSelect, DatePicker } from '../../components/pickers';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Plus, Printer } from 'lucide-react';
@@ -95,7 +96,7 @@ export default function ProgressCardsPage() {
         actions={can('PROGRESS_CARD_CREATE') && <button type="button" className="btn-primary" onClick={() => setGenerating(true)}><Plus size={16} /> Generate</button>} />
       <Card>
         <FilterBar>
-          <SelectInput value={batchId} onChange={setBatchId} options={refOptions(batches)} placeholder="All batches" />
+          <SearchableSelect value={batchId} onChange={setBatchId} options={refOptions(batches)} placeholder="All batches" />
           <SelectInput value={status} onChange={setStatus} options={enumOptions(STATUSES)} placeholder="Any status" />
         </FilterBar>
         <DataTable rows={query.data} loading={query.loading} error={query.error} onRetry={query.reload} rowKey={(row) => row.id}
@@ -121,15 +122,15 @@ export default function ProgressCardsPage() {
             options={[{ value: 'batch', label: 'Every student of a batch' }, { value: 'student', label: 'One student' }]} />
         </Field>
         {gen.values.mode === 'batch' ? (
-          <Field label="Batch" error={errors.batchId}><SelectInput value={gen.values.batchId} onChange={(v) => gen.set('batchId', v)} options={refOptions(batches)} placeholder="Select" /></Field>
+          <Field label="Batch" error={errors.batchId}><SearchableSelect value={gen.values.batchId} onChange={(v) => gen.set('batchId', v)} options={refOptions(batches)} placeholder="Select" /></Field>
         ) : (
           <StudentPicker batchId={gen.values.batchId} studentId={gen.values.studentId} error={errors.studentId}
             onBatch={(v) => gen.set('batchId', v)} onStudent={(v) => gen.set('studentId', v)} />
         )}
         <Field label="Title" error={errors.title}><TextInput value={gen.values.title} onChange={(v) => gen.set('title', v)} placeholder="Monthly progress - June" /></Field>
         <div className="grid grid-cols-2 gap-x-4">
-          <Field label="Period from" error={errors.periodStart}><input type="date" className="input" value={gen.values.periodStart} onChange={(e) => gen.set('periodStart', e.target.value)} /></Field>
-          <Field label="Period to" error={errors.periodEnd}><input type="date" className="input" value={gen.values.periodEnd} onChange={(e) => gen.set('periodEnd', e.target.value)} /></Field>
+          <Field label="Period from" error={errors.periodStart}><DatePicker className="input" value={gen.values.periodStart} onChange={(e) => gen.set('periodStart', e.target.value)} /></Field>
+          <Field label="Period to" error={errors.periodEnd}><DatePicker className="input" value={gen.values.periodEnd} onChange={(e) => gen.set('periodEnd', e.target.value)} /></Field>
         </div>
         <Field label="Mentor remarks (optional, for every card)"><TextArea value={gen.values.mentorRemarks} onChange={(v) => gen.set('mentorRemarks', v)} rows={2} /></Field>
       </Modal>

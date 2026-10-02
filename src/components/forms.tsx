@@ -1,6 +1,7 @@
 import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react';
 import type { Ref } from '../types';
 import { titleCase } from '../utils/format';
+import { FieldLabelContext } from './pickers';
 
 export function Field({
   label,
@@ -18,7 +19,7 @@ export function Field({
   return (
     <div className={className}>
       <label className="label">{label}</label>
-      {children}
+      <FieldLabelContext.Provider value={label}>{children}</FieldLabelContext.Provider>
       {hint && !error && <p className="mt-1 text-xs text-slate-400">{hint}</p>}
       {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
     </div>

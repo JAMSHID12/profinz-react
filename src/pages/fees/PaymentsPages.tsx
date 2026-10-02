@@ -1,3 +1,4 @@
+import { DatePicker } from '../../components/pickers';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Printer } from 'lucide-react';
@@ -22,8 +23,8 @@ export function PaymentsPage() {
       <PageHeader title="Payments" subtitle="Every payment has a receipt number" />
       <Card>
         <FilterBar>
-          <input type="date" className="input" value={from} max={to} onChange={(event) => { setFrom(event.target.value); setPage(0); }} aria-label="From" />
-          <input type="date" className="input" value={to} min={from} onChange={(event) => { setTo(event.target.value); setPage(0); }} aria-label="To" />
+          <DatePicker className="input" value={from} max={to} onChange={(event) => { setFrom(event.target.value); setPage(0); }} aria-label="From" />
+          <DatePicker className="input" value={to} min={from} onChange={(event) => { setTo(event.target.value); setPage(0); }} aria-label="To" />
           <div className="flex items-center text-sm text-slate-600">This page: <span className="ml-1 font-semibold text-slate-800">{formatMoney(total)}</span></div>
         </FilterBar>
         <DataTable rows={query.data?.content} loading={query.loading} error={query.error} onRetry={query.reload} rowKey={(row) => row.id} empty="No payments in this period"

@@ -1,0 +1,52 @@
+.setup-page { color: #102443; }
+.setup-page > div:first-child h1 { font-size: 25px; font-weight: 650; }
+.setup-page > div:first-child p { color: #59708f; font-size: 14px; }
+.setup-page .card { padding: 22px; border: 1px solid #dce6f1; box-shadow: none; border-radius: 10px; }
+.setup-page .card > div:first-child:not(.setup-table):not(.table-wrap) { padding: 0 0 20px; border-bottom: 0; }
+.setup-page .card h2 { font-size: 20px; color: #102443; font-weight: 650; }
+.setup-page .card h2 + p { margin-top: 5px; font-size: 13px; color: #59708f; }
+.setup-page .btn-primary, .setup-dialog .btn-primary { background: #0065f5; border-radius: 7px; }
+.setup-page .btn-primary:hover, .setup-dialog .btn-primary:hover { background: #0054ce; }
+.setup-page .btn-primary { padding: 10px 17px; }
+.setup-tabs { display: flex; gap: 4px; overflow-x: auto; border-bottom: 1px solid #e2e8f0; margin-bottom: 16px; }
+.setup-tabs button { flex-shrink: 0; white-space: nowrap; padding: 8px 12px; color: #64748b; font-size: 14px; font-weight: 500; border-bottom: 2px solid transparent; transition: color .15s, border-color .15s; }
+.setup-tabs button[aria-pressed='true'] { color: rgb(var(--brand-700)); border-bottom-color: rgb(var(--brand-600)); }
+.setup-tabs button:hover { color: #1e293b; }
+.setup-page button:focus-visible, .setup-page a:focus-visible { outline: 2px solid #0065f5; outline-offset: 2px; }
+.setup-page .table-wrap { border: 1px solid #dfe7f1; border-radius: 7px; }
+.setup-page .table { min-width: 600px; }
+.setup-page .table th { background: #f3f7fb; padding: 15px 18px; color: #4c6383; font-size: 12px; letter-spacing: 0; }
+.setup-page .table td { padding: 15px 18px; color: #172c49; border-right: 1px solid #e8eef6; font-size: 14px; }
+.setup-page .table td:last-child { border-right: 0; }
+.setup-page .table tbody tr:last-child td { border-bottom: 0; }
+.setup-page .table .font-mono { font-family: inherit; font-size: 13px; }
+.setup-page .table td > .rounded-full { border-radius: 8px; font-weight: 400; padding: 6px 10px; gap: 7px; }
+.setup-page .table td > .rounded-full::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.setup-page .table .btn-ghost { color: #183351; padding: 6px; }
+.setup-page .table .btn-ghost svg { width: 18px; height: 18px; }
+.setup-row-actions { display: flex; align-items: center; gap: 17px; }
+.setup-page .table .setup-deactivate { color: #e93838; }
+.setup-pagination { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding-top: 20px; color: #536b8d; font-size: 13px; }
+.setup-pagination nav { display: flex; gap: 7px; }
+.setup-pagination button, .setup-pagination nav span { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border: 1px solid #d8e3ef; border-radius: 6px; }
+.setup-pagination nav span { color: white; background: #0065f5; border-color: #0065f5; }
+.setup-pagination button:disabled { opacity: .4; cursor: not-allowed; }
+.setup-pagination button:enabled:hover { background: #edf5ff; }
+.setup-course-picker { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.setup-course-picker .input { max-width: 360px; }
+.setup-course-link { color: #005dcc; text-align: left; font-weight: 600; }
+.setup-course-link:hover { text-decoration: underline; }
+.setup-dialog[role='dialog'] { border-radius: 16px; background: #f9fbfe; }
+.setup-dialog > div:first-child { background: #f9fbfe; padding: 20px 24px; }
+.setup-dialog h2 { font-size: 21px; }
+.setup-dialog > div:nth-child(2) { padding: 22px 24px; }
+.setup-dialog > div:last-child { padding: 16px 24px; background: white; }
+.setup-dialog .input { border-color: #d3dfef; min-height: 40px; }
+@media (max-width: 640px) {
+ .setup-page .card { padding: 14px; }
+ .setup-page > div:first-child h1 { font-size: 22px; }
+ .setup-page .card h2 { font-size: 18px; }
+ .setup-page .table td, .setup-page .table th { padding: 12px; }
+ .setup-pagination { padding-top: 14px; font-size: 12px; }
+ .setup-course-picker { align-items: flex-start; flex-direction: column; gap: 6px; }
+}

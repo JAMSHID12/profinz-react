@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { academicApi, assessmentApi, disciplineApi, staffApi, studentApi } from '../api/endpoints';
 import { useAuth } from '../context/AuthContext';
 import { useQuery } from './useQuery';
@@ -55,4 +56,12 @@ export function useExamTypes() {
 export function useDisciplineTypes() {
   const { can } = useAuth();
   return useQuery(() => disciplineApi.types(), [], can('DISCIPLINE_VIEW', 'MASTER_DATA_MANAGE')).data ?? [];
+}
+
+/** Uses the existing student search endpoint and the same active/batch scope as useStudents. */
+export function useStudentOptionsSearch(batchId?: number) {
+  return useCallback(async (search: string) => {
+    const rows = await studentApi.search({ batchId, status: 'ACTIVE', search });
+    return rows.map(row => ({ value: row.id, label: row.fullName + ' (' + row.admissionNumber + ')' }));
+  }, [batchId]);
 }

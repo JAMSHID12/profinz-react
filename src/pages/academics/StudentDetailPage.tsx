@@ -1,3 +1,4 @@
+import { SearchableSelect, DatePicker } from '../../components/pickers';
 import { useState } from 'react';
 import { educationLabel } from '../../utils/eligibility';
 import { Link, useParams } from 'react-router-dom';
@@ -17,7 +18,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useConfig } from '../../context/ConfigContext';
 import { DataTable } from '../../components/DataTable';
 import { FeeSummaryView, PerformanceView } from '../../components/academic';
-import { Field, refOptions, SelectInput, TextInput } from '../../components/forms';
+import { Field, refOptions, TextInput } from '../../components/forms';
 import { Badge, Card, CardHeader, InfoGrid, Loadable, Modal, PageHeader, Tabs } from '../../components/ui';
 import { formatDate, formatMoney, formatPercent, todayIso } from '../../utils/format';
 import type { FeePlan, StudentDetail } from '../../types';
@@ -307,10 +308,10 @@ function MoveDialog({ open, student, onClose, onMoved }: {
         The current assignment{student.batch ? ` to ${student.batch.name}` : ''} is closed and kept in the batch history.
       </p>
       <Field label="New batch" error={errors.batchId}>
-        <SelectInput value={batchId} onChange={setBatchId} options={refOptions(batches)} placeholder="Select a batch" />
+        <SearchableSelect value={batchId} onChange={setBatchId} options={refOptions(batches)} placeholder="Select a batch" />
       </Field>
       <Field label="Effective from">
-        <input type="date" className="input" value={effectiveDate} onChange={(event) => setEffectiveDate(event.target.value)} />
+        <DatePicker className="input" value={effectiveDate} onChange={(event) => setEffectiveDate(event.target.value)} />
       </Field>
       <Field label="Reason">
         <TextInput value={reason} onChange={setReason} placeholder="e.g. Moved to the evening batch" />

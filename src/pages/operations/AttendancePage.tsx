@@ -1,3 +1,4 @@
+import { DatePicker, SearchableSelect } from '../../components/pickers';
 import { memo, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { flushSync } from 'react-dom';
@@ -5,13 +6,11 @@ import { useSearchParams } from 'react-router-dom';
 import {
   AlertCircle,
   ArrowUpDown,
-  BellOff,
   CalendarX2,
   Check,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  Ellipsis,
   Loader2,
   Save,
   Search,
@@ -22,11 +21,10 @@ import { attendanceApi } from '../../api/endpoints';
 import { errorMessage } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { useQuery } from '../../hooks/useQuery';
-import { EmptyState, ErrorState, Modal, Spinner } from '../../components/ui';
+import { EmptyState, ErrorState, Spinner } from '../../components/ui';
 import {
   ATTENDANCE_STATUSES,
   choose,
-  MARKING_STATUSES,
   MarkDetails,
   MarkEditor,
   markingStatus,
@@ -37,12 +35,14 @@ import {
 import { addDays, formatDate, formatDateTime, formatDay, nowTime, ROLE_LABELS, todayIso } from '../../utils/format';
 import type { AttendanceMark, AttendanceSheet, AttendanceStatus, BulkResult, SheetRow, TakerClass } from '../../types';
 
+import './attendance-taking.css';
+
 type Marks = Record<number, AttendanceMark>;
 type Filter = 'ALL' | 'PRESENT' | 'ABSENT' | 'DISCIPLINE';
 type Marking = 'PRESENT' | 'ABSENT';
 type Sort = 'name' | 'admission' | 'absent';
 
-/** Phones show a coloured letter instead of dot + word, and leave out Discipline, so the chips fit on one line. */
+/** Compact status and discipline filters fit alongside search and sort on phones. */
 /** Present counts late students too (late is part of present); Discipline is late, no uniform or no ID tag. */
 const FILTERS: { value: Filter; label: string; short: ReactNode; dot?: string; letter?: string }[] = [
   { value: 'ALL', label: 'All', short: 'All' },
@@ -63,8 +63,8 @@ const SORTS: { value: Sort; label: string }[] = [
 
 const SORT_RANK: Record<AttendanceStatus, number> = { ABSENT: 0, LATE: 1, EXCUSED: 2, PRESENT: 3, HOLIDAY: 4 };
 
-/** Desktop columns: student, details, status, more. Shared by the column header and every row so they line up. */
-const DESKTOP_COLUMNS = 'lg:grid-cols-[minmax(12rem,18rem)_minmax(8rem,1fr)_10rem_2.25rem]';
+
+
 const SORT_KEY = 'tmp.attendanceSort';
 const DRAFT_PREFIX = 'tmp.attendanceDraft.';
 
@@ -278,39 +278,23 @@ export default function AttendancePage() {
     );
   }
 
-  const wholeDays = entries?.filter(isWholeDay) ?? [];
-  const lessons = entries?.filter((entry) => !isWholeDay(entry)) ?? [];
-  const option = (entry: TakerClass) => (
-    <option key={`${entry.batch.id}:${entry.scheduleId ?? 'day'}`} value={`${entry.batch.id}:${entry.scheduleId ?? ''}`}>
-      {classLabel(entry)}
-    </option>
-  );
 
   return (
-    <div className="screen-fill flex flex-col bg-white">
-      <div className="shrink-0 border-b border-slate-200 px-3 py-2 sm:px-4">
+    <div className="attendance-taking screen-fill flex flex-col bg-white">
+      <div className="attendance-top shrink-0 px-3 py-2 sm:px-4">
         <div className="flex items-center gap-2">
           <h1 className="hidden shrink-0 pr-2 text-base font-semibold text-slate-900 xl:block">Attendance</h1>
-          <select
-            className="input h-10 min-w-0 flex-1 py-0 font-medium sm:max-w-md"
-            aria-label="Batch or class"
-            disabled={!entries || entries.length === 0}
+          <div className="min-w-0 flex-1 sm:max-w-md"><SearchableSelect
+            className="input h-10 py-0 font-medium" aria-label="Batch or class"
+            disabled={!entries || entries.length === 0} required
             value={selected ? `${selected.batch.id}:${selected.scheduleId ?? ''}` : ''}
-            onChange={(event) => {
-              const [batch, schedule] = event.target.value.split(':');
-              const entry = entries?.find((candidate) => String(candidate.batch.id) === batch
-                && String(candidate.scheduleId ?? '') === schedule);
+            placeholder={entries?.length === 0 ? 'No classes on this date' : 'Loading…'}
+            options={(entries ?? []).map(entry => ({ value: `${entry.batch.id}:${entry.scheduleId ?? ''}`, label: classLabel(entry) }))}
+            onChange={value => {
+              const [batch, schedule] = value.split(':');
+              const entry = entries?.find(candidate => String(candidate.batch.id) === batch && String(candidate.scheduleId ?? '') === schedule);
               if (entry) open(date, entry);
-            }}
-          >
-            {!selected && <option value="">{entries && entries.length === 0 ? 'No classes on this date' : 'Loading…'}</option>}
-            {wholeDays.length > 0 && lessons.length > 0 ? (
-              <>
-                <optgroup label="Whole day">{wholeDays.map(option)}</optgroup>
-                <optgroup label="Classes">{lessons.map(option)}</optgroup>
-              </>
-            ) : (entries ?? []).map(option)}
-          </select>
+            }} /></div>
           <DateStepper date={date} today={today} onChange={changeDate} />
         </div>
         {selected && (
@@ -337,31 +321,14 @@ function Centered({ children }: { children: ReactNode }) {
 function DateStepper({ date, today, onChange }: { date: string; today: string; onChange: (date: string) => void }) {
   const relative = date === today ? 'Today' : date === addDays(today, -1) ? 'Yesterday' : null;
   return (
-    <div className="flex h-10 shrink-0 items-stretch overflow-hidden rounded-lg border border-slate-300 bg-white">
+    <div className="attendance-date flex h-10 shrink-0 items-stretch overflow-hidden rounded-lg border border-slate-300 bg-white">
       <button type="button" onClick={() => onChange(addDays(date, -1))} aria-label="Previous day"
         className="flex w-9 items-center justify-center text-slate-600 transition hover:bg-slate-50">
         <ChevronLeft size={18} />
       </button>
-      <label className="relative flex cursor-pointer items-center gap-1.5 whitespace-nowrap border-x border-slate-200 px-2.5 text-sm transition hover:bg-slate-50">
-        <span className="font-semibold text-slate-800">{relative ?? formatDay(date)}</span>
-        {relative && <span className="hidden text-slate-500 sm:inline">&bull; {formatDate(date)}</span>}
-        <input
-          type="date"
-          required
-          value={date}
-          max={today}
-          aria-label="Date"
-          className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-          onChange={(event) => onChange(event.target.value)}
-          onClick={(event) => {
-            try {
-              event.currentTarget.showPicker();
-            } catch {
-              // Older browsers open their own picker.
-            }
-          }}
-        />
-      </label>
+      <DatePicker required value={date} max={today} aria-label="Date" triggerLabel={relative ?? formatDay(date)}
+        className="flex h-full items-center gap-1.5 whitespace-nowrap border-x border-slate-200 px-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+        onChange={event => onChange(event.target.value)} />
       <button type="button" onClick={() => onChange(addDays(date, 1))} disabled={date >= today} aria-label="Next day"
         className="flex w-9 items-center justify-center text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent">
         <ChevronRight size={18} />
@@ -383,8 +350,6 @@ function SheetEditor({ sheet, userId, taker, onSaved }: { sheet: AttendanceSheet
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saved, setSaved] = useState<{ at?: string; by?: string; result?: BulkResult }>({ at: sheet.markedAt, by: sheet.markedBy });
   const savingRef = useRef(false);
-  const marksRef = useRef(marks);
-  marksRef.current = marks;
 
   const changed = useMemo(() => {
     const ids = new Set<number>();
@@ -423,6 +388,7 @@ function SheetEditor({ sheet, userId, taker, onSaved }: { sheet: AttendanceSheet
   // P or A. Choosing the button a student already has changes nothing, so a late student stays late.
   const chooseStatus = useCallback((studentId: number, status: Marking) => {
     update(studentId, (mark) => choose(mark, status));
+    setDialog(studentId);
   }, [update]);
 
   const openDetails = useCallback((studentId: number) => setDialog(studentId), []);
@@ -446,10 +412,9 @@ function SheetEditor({ sheet, userId, taker, onSaved }: { sheet: AttendanceSheet
     return result;
   }, [rows, marks]);
 
-  // Filtering and sorting use the marks at the moment the view is chosen, so rows never jump away
-  // while they are being marked.
+  // Counts and visible rows follow the current marks; an open detail panel remains available.
   const visible = useMemo(() => {
-    const current = marksRef.current;
+    const current = marks;
     let list = rows;
     if (filter === 'DISCIPLINE') list = list.filter((row) => hasDiscipline(current[row.studentId]));
     else if (filter !== 'ALL') list = list.filter((row) => markingStatus(current[row.studentId].status) === filter);
@@ -461,7 +426,7 @@ function SheetEditor({ sheet, userId, taker, onSaved }: { sheet: AttendanceSheet
     return [...list].sort(sort === 'admission'
       ? (a, b) => a.admissionNumber.localeCompare(b.admissionNumber, undefined, { numeric: true })
       : (a, b) => SORT_RANK[current[a.studentId].status] - SORT_RANK[current[b.studentId].status] || byName(a, b));
-  }, [rows, filter, query, sort]);
+  }, [rows, marks, filter, query, sort]);
 
   const changeSort = (next: Sort) => {
     setSort(next);
@@ -556,7 +521,7 @@ function SheetEditor({ sheet, userId, taker, onSaved }: { sheet: AttendanceSheet
 
   return (
     <>
-      <div className="shrink-0 border-b border-slate-200 bg-slate-50 px-3 py-1.5 sm:px-4">
+      <div className="attendance-filters shrink-0 px-3 py-1.5 sm:px-4">
         <div className="flex items-center gap-2">
           {/* Until there is room for everything (xl), search is a button that swaps the chips for the field. */}
           <div role="group" aria-label="Show students"
@@ -567,7 +532,7 @@ function SheetEditor({ sheet, userId, taker, onSaved }: { sheet: AttendanceSheet
               return (
                 <button key={item.value} type="button" aria-pressed={active} title={item.label} aria-label={`${item.label} ${count}`}
                   onClick={() => setFilter(active ? 'ALL' : item.value)}
-                  className={`inline-flex h-8 shrink-0 items-center gap-1 rounded-full border px-2 text-xs font-medium transition sm:gap-1.5 sm:px-2.5 ${
+                  className={`attendance-filter filter-${item.value.toLowerCase()} inline-flex h-8 shrink-0 items-center gap-1 rounded-full border px-2 text-xs font-medium transition sm:gap-1.5 sm:px-2.5 ${
                     active ? 'border-slate-800 bg-slate-800 text-white' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'
                   }`}>
                   {item.dot && <span className={`hidden h-2 w-2 rounded-full sm:inline-block ${item.dot}`} />}
@@ -619,21 +584,14 @@ function SheetEditor({ sheet, userId, taker, onSaved }: { sheet: AttendanceSheet
           </div>
         ) : (
           <>
-            {/* Inside the scrolling list (sticky), so it is exactly as wide as the rows even when a scrollbar shows. */}
-            <div aria-hidden="true"
-              className={`sticky top-0 z-10 hidden items-center gap-x-3 border-b border-slate-200 bg-white py-1.5 pl-4 pr-4 text-[11px] font-semibold uppercase tracking-wide text-slate-500 lg:grid ${DESKTOP_COLUMNS}`}>
-              <span>Student</span>
-              <span>Details</span>
-              <span>Status</span>
-              <span />
-            </div>
-            <ul>
+            <ul className="attendance-students">
               {visible.map((row) => (
                 <StudentRow
                   key={row.studentId}
                   row={row}
                   mark={marks[row.studentId]}
                   changed={changed.has(row.studentId)}
+                  selected={dialog === row.studentId}
                   readOnly={!sheet.canMark}
                   onStatus={chooseStatus}
                   onOpen={openDetails}
@@ -644,7 +602,7 @@ function SheetEditor({ sheet, userId, taker, onSaved }: { sheet: AttendanceSheet
         )}
       </div>
 
-      <footer className="shrink-0 border-t border-slate-200 bg-white px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 sm:px-4">
+      <footer hidden={dialog !== null} className="attendance-save shrink-0 border-t border-slate-200 bg-white px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 sm:px-4">
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1" aria-live="polite">
             <p className="truncate text-[11px] text-slate-400 sm:text-xs">Taking attendance as {taker}</p>
@@ -660,101 +618,48 @@ function SheetEditor({ sheet, userId, taker, onSaved }: { sheet: AttendanceSheet
         </div>
       </footer>
 
-      {/* The details of the button the student already has: present (late, uniform, ID tag) or absent (reason). */}
-      <Modal open={Boolean(dialogRow && dialogMark)} dismissible onClose={closeDialog}
-        title={dialogRow && dialogMark ? `${dialogRow.fullName} · ${STATUS_STYLE[markingStatus(dialogMark.status)].label}` : ''}
-        footer={<button type="button" className="btn-primary w-full sm:w-auto" onClick={closeDialog}>Done</button>}>
-        {dialogRow && dialogMark && (
-          <MarkEditor key={dialogRow.studentId} value={dialogMark} parentNotifiable={dialogRow.parentNotifiable}
-            disabled={!sheet.canMark} onChange={(mark) => update(dialogRow.studentId, () => mark)} />
-        )}
-      </Modal>
-    </>
+      {dialogRow && dialogMark && <AttendanceDetails name={dialogRow.fullName} mark={dialogMark} onClose={closeDialog}>
+        <MarkEditor key={dialogRow.studentId} value={dialogMark} parentNotifiable={dialogRow.parentNotifiable}
+          disabled={!sheet.canMark} onChange={mark => update(dialogRow.studentId, () => mark)} />
+      </AttendanceDetails>}    </>
   );
+}
+
+function AttendanceDetails({ name, mark, onClose, children }: { name: string; mark: AttendanceMark; onClose: () => void; children: ReactNode }) {
+  const panel = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    panel.current?.focus({ preventScroll: true });
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') { event.preventDefault(); onClose(); } };
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('keydown', onKey); previous?.focus({ preventScroll: true }); };
+  }, [name, onClose]);
+  return <section ref={panel} tabIndex={-1} role="dialog" aria-modal="false" aria-labelledby="attendance-details-title" className="attendance-details">
+    <div className="attendance-sheet-handle" aria-hidden="true" />
+    <header><h2 id="attendance-details-title">{name} · {STATUS_STYLE[markingStatus(mark.status)].label}</h2><button type="button" aria-label="Close student details" onClick={onClose}><X size={21} /></button></header>
+    <div className="attendance-details-body">{children}</div>
+    <div className="attendance-details-footer"><button type="button" className="btn-primary" onClick={onClose}>Done</button></div>
+  </section>;
 }
 
 interface RowProps {
   row: SheetRow;
   mark: AttendanceMark;
   changed: boolean;
+  selected: boolean;
   readOnly: boolean;
   onStatus: (studentId: number, status: Marking) => void;
   onOpen: (studentId: number) => void;
 }
 
-/** A round P / A button on phones: filled in the status colour when selected, a quiet outline otherwise. */
-function circleClass(selected: boolean, status: AttendanceStatus): string {
-  return `flex h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-bold transition active:scale-95 disabled:opacity-60 ${
-    selected ? `${STATUS_STYLE[status].selected} shadow-sm` : 'border-slate-300 bg-white text-slate-500'
-  }`;
-}
-
-/** One student. Memoised: marking a student re-renders that row only, however long the register. */
-const StudentRow = memo(function StudentRow({ row, mark, changed, readOnly, onStatus, onOpen }: RowProps) {
-  const absent = mark.status === 'ABSENT';
-  // P for present and late (late is part of present), A for absent (and marks saved as excused before).
-  const chosen = markingStatus(mark.status);
-  return (
-    <li className={`attendance-row relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 border-b border-slate-100 py-1 pl-4 pr-3 sm:pr-4 ${DESKTOP_COLUMNS}`}>
-      {mark.status !== 'PRESENT' && (
-        <span aria-hidden="true" className={`absolute inset-y-1.5 left-1 w-1 rounded-full ${STATUS_STYLE[mark.status].accent}`} />
-      )}
-      <button type="button" onClick={() => onOpen(row.studentId)} disabled={readOnly}
-        className="flex min-w-0 items-center gap-3 rounded-lg py-1 text-left disabled:cursor-default">
-        <StudentAvatar name={row.fullName} photoUrl={row.photoUrl} />
-        <span className="min-w-0 flex-1">
-          <span className="flex items-center gap-1.5">
-            <span className="truncate text-sm font-medium text-slate-900">{row.fullName}</span>
-            {changed && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" title="Not saved yet" />}
-          </span>
-          <span className="flex h-[18px] min-w-0 items-center gap-1.5 text-xs text-slate-500">
-            <span className="shrink-0">{row.admissionNumber}</span>
-            {!row.parentNotifiable && <BellOff size={11} className="shrink-0 text-slate-400" aria-label="Parent not on WhatsApp" />}
-            <MarkDetails mark={mark} compact showStatus={!absent} className="lg:hidden" />
-          </span>
-        </span>
-      </button>
-
-      {/* Always rendered, even when empty, so the status column stays in the same place on every row. */}
-      <div className="hidden min-w-0 lg:block">
-        <MarkDetails mark={mark} showStatus={!absent} />
-      </div>
-
-      {/* Phones: round P and A, one tap each. Late and the other details are set by tapping the
-          student and show as a label under the name. */}
-      <div role="radiogroup" aria-label={`Attendance of ${row.fullName}`} className="flex items-center gap-2 sm:hidden">
-        <button type="button" role="radio" aria-checked={chosen === 'PRESENT'} aria-label="Present" disabled={readOnly}
-          onClick={() => onStatus(row.studentId, 'PRESENT')} className={circleClass(chosen === 'PRESENT', 'PRESENT')}>
-          P
-        </button>
-        <button type="button" role="radio" aria-checked={chosen === 'ABSENT'} aria-label="Absent" disabled={readOnly}
-          onClick={() => onStatus(row.studentId, 'ABSENT')} className={circleClass(chosen === 'ABSENT', 'ABSENT')}>
-          A
-        </button>
-      </div>
-
-      {/* Tablets and desktops: Present or Absent, one tap each. */}
-      <div role="radiogroup" aria-label={`Attendance of ${row.fullName}`}
-        className="hidden items-center gap-0.5 justify-self-end rounded-lg border border-slate-200 bg-slate-50 p-0.5 sm:flex lg:justify-self-start">
-        {MARKING_STATUSES.map((status) => {
-          const selected = chosen === status;
-          return (
-            <button key={status} type="button" role="radio" aria-checked={selected} disabled={readOnly}
-              onClick={() => onStatus(row.studentId, status)}
-              className={`h-10 w-[4.75rem] rounded-md border text-sm font-semibold transition lg:h-8 ${
-                selected ? STATUS_STYLE[status].selected : 'border-transparent text-slate-600 hover:bg-white hover:text-slate-900'
-              }`}>
-              {STATUS_STYLE[status].label}
-            </button>
-          );
-        })}
-      </div>
-
-      <button type="button" onClick={() => onOpen(row.studentId)} disabled={readOnly} title="Late time, discipline, reason and note"
-        aria-label={`More for ${row.fullName}`}
-        className="hidden h-8 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 lg:flex">
-        <Ellipsis size={18} />
-      </button>
-    </li>
-  );
+const StudentRow = memo(function StudentRow({ row, mark, changed, selected, readOnly, onStatus, onOpen }: RowProps) {
+  const absent = markingStatus(mark.status) === 'ABSENT';
+  return <li className={`attendance-student ${selected ? 'is-selected' : ''} ${absent ? 'is-absent' : ''}`}>
+    <button type="button" className="attendance-student-info" onClick={() => onOpen(row.studentId)} aria-label={`Details for ${row.fullName}`} aria-expanded={selected}>
+      <StudentAvatar name={row.fullName} photoUrl={row.photoUrl} size={50} />
+      <span className="attendance-student-text"><strong>{row.fullName}{changed && <span className="attendance-unsaved" title="Not saved yet" />}</strong><span>{row.admissionNumber}</span><MarkDetails mark={mark} compact /></span>
+    </button>
+    <button type="button" className="attendance-absent-toggle" aria-label={`${absent ? 'Mark present' : 'Mark absent'}: ${row.fullName}`} aria-pressed={absent} disabled={readOnly}
+      onClick={() => onStatus(row.studentId, absent ? 'PRESENT' : 'ABSENT')}>A</button>
+  </li>;
 });

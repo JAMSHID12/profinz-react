@@ -1,3 +1,4 @@
+import { DatePicker } from '../../components/pickers';
 import { useEffect, useState } from 'react';
 import { Pencil, Plus } from 'lucide-react';
 import { meetingApi } from '../../api/endpoints';
@@ -67,8 +68,8 @@ export default function ParentMeetingsPage() {
       <Card>
         <FilterBar>
           <SelectInput value={status} onChange={setStatus} options={enumOptions(STATUSES)} placeholder="Any status" />
-          <input type="date" className="input" value={from} max={to} onChange={(event) => setFrom(event.target.value)} aria-label="From" />
-          <input type="date" className="input" value={to} min={from} onChange={(event) => setTo(event.target.value)} aria-label="To" />
+          <DatePicker className="input" value={from} max={to} onChange={(event) => setFrom(event.target.value)} aria-label="From" />
+          <DatePicker className="input" value={to} min={from} onChange={(event) => setTo(event.target.value)} aria-label="To" />
         </FilterBar>
         <DataTable rows={query.data} loading={query.loading} error={query.error} onRetry={query.reload} rowKey={(row) => row.id} empty="No meetings in this period"
           columns={[
@@ -94,9 +95,9 @@ export default function ParentMeetingsPage() {
             onBatch={(v) => set('batchId', v)} onStudent={(v) => set('studentId', v)} />
         )}
         <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-3">
-          <Field label="Meeting date" error={errors.meetingDate}><input type="date" className="input" value={values.meetingDate} onChange={(e) => set('meetingDate', e.target.value)} /></Field>
+          <Field label="Meeting date" error={errors.meetingDate}><DatePicker className="input" value={values.meetingDate} onChange={(e) => set('meetingDate', e.target.value)} /></Field>
           <Field label="Status"><SelectInput value={values.status} onChange={(v) => set('status', v)} options={enumOptions(STATUSES)} /></Field>
-          <Field label="Follow-up date"><input type="date" className="input" value={values.followUpDate} onChange={(e) => set('followUpDate', e.target.value)} /></Field>
+          <Field label="Follow-up date"><DatePicker className="input" value={values.followUpDate} onChange={(e) => set('followUpDate', e.target.value)} /></Field>
         </div>
         <Field label="Discussion"><TextArea value={values.discussion} onChange={(v) => set('discussion', v)} rows={3} /></Field>
         <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-3">

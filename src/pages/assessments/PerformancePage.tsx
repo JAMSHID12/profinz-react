@@ -1,10 +1,11 @@
+import { SearchableSelect, DatePicker } from '../../components/pickers';
 import { useEffect, useState } from 'react';
 import { performanceApi } from '../../api/endpoints';
 import { useQuery } from '../../hooks/useQuery';
 import { useBatches } from '../../hooks/lookups';
 import { DataTable } from '../../components/DataTable';
 import { PerformanceView } from '../../components/academic';
-import { FilterBar, refOptions, SelectInput } from '../../components/forms';
+import { FilterBar, refOptions, } from '../../components/forms';
 import { Card, EmptyState, Loadable, Modal, PageHeader } from '../../components/ui';
 import { formatPercent, isoDaysFromToday, todayIso } from '../../utils/format';
 import type { Ref } from '../../types';
@@ -29,9 +30,9 @@ export default function PerformancePage() {
       <PageHeader title="Performance" subtitle="Weighted from published daily tests, weekly tests, exams and attendance" />
       <Card>
         <FilterBar>
-          <SelectInput value={batchId} onChange={setBatchId} options={refOptions(batches)} placeholder="Select a batch" />
-          <input type="date" className="input" value={from} max={to} onChange={(event) => setFrom(event.target.value)} aria-label="From" />
-          <input type="date" className="input" value={to} min={from} onChange={(event) => setTo(event.target.value)} aria-label="To" />
+          <SearchableSelect value={batchId} onChange={setBatchId} options={refOptions(batches)} placeholder="Select a batch" />
+          <DatePicker className="input" value={from} max={to} onChange={(event) => setFrom(event.target.value)} aria-label="From" />
+          <DatePicker className="input" value={to} min={from} onChange={(event) => setTo(event.target.value)} aria-label="To" />
         </FilterBar>
         {!batchId ? <EmptyState title="Choose a batch" /> : (
           <DataTable rows={query.data ? rows : null} loading={query.loading} error={query.error} onRetry={query.reload}

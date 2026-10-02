@@ -170,6 +170,7 @@ export function Modal({
   footer,
   wide = false,
   dismissible = false,
+  className = '',
 }: {
   open: boolean;
   title: string;
@@ -179,11 +180,12 @@ export function Modal({
   wide?: boolean;
   /** Close on a tap outside or Escape - for pickers that apply changes immediately, not for forms. */
   dismissible?: boolean;
+  className?: string;
 }) {
   useEffect(() => {
     if (!open || !dismissible) return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape' && !event.defaultPrevented && !document.querySelector('[data-radix-popper-content-wrapper]')) onClose();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -198,7 +200,7 @@ export function Modal({
       <div
         className={`max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-white shadow-xl sm:rounded-xl ${
           wide ? 'max-w-3xl' : 'max-w-lg'
-        }`}
+        } ${className}`}
         role="dialog"
         aria-modal="true"
         aria-label={title}

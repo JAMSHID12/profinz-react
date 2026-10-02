@@ -1,10 +1,11 @@
+import { SearchableSelect } from '../../components/pickers';
 import { useEffect, useState } from 'react';
 import { Pencil, Plus } from 'lucide-react';
 import { staffApi } from '../../api/endpoints';
 import { useAction, useForm, useQuery } from '../../hooks/useQuery';
 import { useBatches, useSubjects } from '../../hooks/lookups';
 import { useAuth } from '../../context/AuthContext';
-import { DataTable } from '../../components/DataTable';
+import { SetupTable as DataTable } from './SetupTable';
 import { blankToUndefined, Checkbox, enumOptions, Field, refOptions, SelectInput, TextInput } from '../../components/forms';
 import { Badge, Card, CardHeader, Modal, PageHeader } from '../../components/ui';
 import { titleCase } from '../../utils/format';
@@ -60,7 +61,7 @@ function StaffDialog({ kind, person, onClose, onSaved }: {
   };
 
   return (
-    <Modal open={person !== null} title={`${existing ? 'Edit' : 'Add'} ${kind === 'mentor' ? 'mentor' : 'faculty member'}`} onClose={onClose} wide
+    <Modal className="setup-dialog" open={person !== null} title={`${existing ? 'Edit' : 'Add'} ${kind === 'mentor' ? 'mentor' : 'faculty member'}`} onClose={onClose} wide
       footer={<><button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
         <button type="button" className="btn-primary" onClick={save} disabled={busy}>Save</button></>}>
       <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
@@ -91,7 +92,7 @@ export function MentorsPage() {
   const query = useQuery(() => staffApi.mentors(), []);
   const [editing, setEditing] = useState<Mentor | 'new' | null>(null);
   return (
-    <div>
+    <div className="setup-page">
       <PageHeader title="Mentors" subtitle="Mentors look after the students of their batches"
         actions={can('MENTOR_MANAGE') && <button type="button" className="btn-primary" onClick={() => setEditing('new')}><Plus size={16} /> Add mentor</button>} />
       <Card>
@@ -103,7 +104,7 @@ export function MentorsPage() {
             { header: 'Batches', render: (row) => row.batchCount },
             { header: 'Login', render: (row) => row.username ?? '-' },
             { header: 'Status', render: (row) => <Badge value={row.active ? 'ACTIVE' : 'INACTIVE'} /> },
-            { header: '', render: (row) => can('MENTOR_MANAGE') && (
+            { header: 'Actions', render: (row) => can('MENTOR_MANAGE') && (
               <button type="button" className="btn-ghost" onClick={() => setEditing(row)} aria-label="Edit"><Pencil size={14} /></button>
             ) },
           ]} />
@@ -143,7 +144,7 @@ export function FacultyPage() {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="setup-page space-y-5">
       <PageHeader title="Faculty" subtitle="Full-time and guest teachers"
         actions={can('FACULTY_MANAGE') && <button type="button" className="btn-primary" onClick={() => setEditing('new')}><Plus size={16} /> Add faculty</button>} />
       <Card>
@@ -155,7 +156,7 @@ export function FacultyPage() {
             { header: 'Contact', render: (row) => [row.mobile, row.email].filter(Boolean).join(' · ') || '-' },
             { header: 'Login', render: (row) => row.username ?? '-' },
             { header: 'Status', render: (row) => <Badge value={row.active ? 'ACTIVE' : 'INACTIVE'} /> },
-            { header: '', render: (row) => can('FACULTY_MANAGE') && (
+            { header: 'Actions', render: (row) => can('FACULTY_MANAGE') && (
               <button type="button" className="btn-ghost" onClick={() => setEditing(row)} aria-label="Edit"><Pencil size={14} /></button>
             ) },
           ]} />
@@ -170,7 +171,7 @@ export function FacultyPage() {
             { header: 'Batch', render: (row) => row.batch.name },
             { header: 'Subject', render: (row) => row.subject.name },
             { header: 'Status', render: (row) => <Badge value={row.active ? 'ACTIVE' : 'INACTIVE'} /> },
-            { header: '', render: (row) => can('FACULTY_MANAGE') && (
+            { header: 'Actions', render: (row) => can('FACULTY_MANAGE') && (
               <button type="button" className="btn-secondary btn-sm" onClick={() => toggle(row.id, !row.active)} disabled={busy}>
                 {row.active ? 'End' : 'Reactivate'}
               </button>
@@ -179,13 +180,13 @@ export function FacultyPage() {
       </Card>
 
       <StaffDialog kind="faculty" person={editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); query.reload(); }} />
-      <Modal open={assigning} title="Assign faculty" onClose={() => setAssigning(false)}
+      <Modal className="setup-dialog" open={assigning} title="Assign faculty" onClose={() => setAssigning(false)}
         footer={<><button type="button" className="btn-secondary" onClick={() => setAssigning(false)}>Cancel</button>
           <button type="button" className="btn-primary" onClick={assign} disabled={busy || !values.facultyId || !values.batchId || !values.subjectId}>Assign</button></>}>
-        <Field label="Faculty"><SelectInput value={values.facultyId} onChange={(v) => set('facultyId', v)} options={refOptions(query.data ?? [])} placeholder="Select" /></Field>
-        <Field label="Batch"><SelectInput value={values.batchId} onChange={(v) => set('batchId', v)} options={refOptions(batches)} placeholder="Select" /></Field>
+        <Field label="Faculty"><SearchableSelect value={values.facultyId} onChange={(v) => set('facultyId', v)} options={refOptions(query.data ?? [])} placeholder="Select" /></Field>
+        <Field label="Batch"><SearchableSelect value={values.batchId} onChange={(v) => set('batchId', v)} options={refOptions(batches)} placeholder="Select" /></Field>
         <Field label="Subject">
-          <SelectInput value={values.subjectId} onChange={(v) => set('subjectId', v)} placeholder="Select"
+          <SearchableSelect value={values.subjectId} onChange={(v) => set('subjectId', v)} placeholder="Select"
             options={subjects
               .filter((subject) => !values.batchId || subject.course.id === batches.find((b) => b.id === Number(values.batchId))?.course.id)
               .map((subject) => ({ value: subject.id, label: subject.name }))} />

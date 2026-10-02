@@ -1,3 +1,4 @@
+import { SearchableSelect } from '../../components/pickers';
 import { useRef, useState } from 'react';
 import { Download, FileSpreadsheet, UploadCloud, CheckCircle2 } from 'lucide-react';
 import { http, errorMessage } from '../../api/client';
@@ -66,12 +67,11 @@ export default function ExcelImportPage({ kind }: { kind: Kind }) {
         </div>
         {kind === 'students' && <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
           <label htmlFor="import-batch" className="mb-2 block font-medium text-slate-900">Which batch are these students joining?</label>
-          <select id="import-batch" value={batchId} disabled={!!busy || batches.loading || !!result?.saved}
-            onChange={e => { setBatchId(e.target.value); setResult(null); setError(''); }}
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-3 text-slate-900 sm:max-w-xl">
-            <option value="">{batches.loading ? 'Loading batches…' : 'Choose a batch'}</option>
-            {batches.data?.filter(batch => batch.status === 'ACTIVE').map(batch => <option key={batch.id} value={batch.id}>{batch.name} · {batch.course.name} · {batch.academicYear.name}</option>)}
-          </select>
+          <SearchableSelect id="import-batch" aria-label="Batch" value={batchId} disabled={!!busy || batches.loading || !!result?.saved}
+            onChange={value => { setBatchId(value); setResult(null); setError(''); }}
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-3 text-slate-900 sm:max-w-xl"
+            placeholder={batches.loading ? 'Loading batches…' : 'Choose a batch'}
+            options={(batches.data ?? []).filter(batch => batch.status === 'ACTIVE').map(batch => ({ value: batch.id, label: batch.name + ' · ' + batch.course.name + ' · ' + batch.academicYear.name }))} />
           <p className="mt-2 text-sm text-slate-600">Every student in this file will join the selected batch. Upload a separate file for each batch. No batch codes or IDs to type.</p>
           {batches.error && <div role="alert" className="mt-2 text-sm text-red-700">{batches.error} <button type="button" className="underline" onClick={batches.reload}>Retry</button></div>}
           {!batches.loading && !batches.error && batches.data?.length === 0 && <p className="mt-2 text-sm text-amber-800">Create an active batch in Setup before uploading students.</p>}
